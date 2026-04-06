@@ -1,0 +1,23 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: #1a365d; /* Navy Blue */
+  --color-secondary: #c0a060; /* Gold/Brass */
+  --color-accent: #f7fafc;
+  
+  --font-sans: "Inter", system-ui, -apple-system, sans-serif;
+  --font-serif: "Amiri", serif;
+}
+
+@layer base {
+  body {
+    @apply bg-accent text-primary antialiased;
+    direction: rtl;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif font-bold;
+  }
+}
+
+@import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&family=Inter:wght@400;500;600;700&display=swap');
