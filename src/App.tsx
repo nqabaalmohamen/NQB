@@ -14,10 +14,15 @@ import Contact from './pages/Contact';
 import Forensic from './pages/Forensic';
 import Institute from './pages/Institute';
 import LoadingSpinner from './components/LoadingSpinner';
+import AdminLogin from './pages/admin/Login';
+import Dashboard from './pages/admin/Dashboard';
+import CarouselManager from './pages/admin/CarouselManager';
+import ProtectedRoute from './components/admin/ProtectedRoute';
 
 const AppContent = () => {
   const [loading, setLoading] = useState(false);
   const location = useLocation();
+  const isAdminPath = location.pathname.startsWith('/admin');
 
   useEffect(() => {
     setLoading(true);
@@ -31,7 +36,7 @@ const AppContent = () => {
   return (
     <div className="min-h-screen flex flex-col bg-accent">
       {loading && <LoadingSpinner />}
-      <Navbar />
+      {!isAdminPath && <Navbar />}
       <main className="flex-grow">
         <Routes>
           <Route path="/" element={<Home />} />
@@ -40,9 +45,28 @@ const AppContent = () => {
           <Route path="/contact" element={<Contact />} />
           <Route path="/forensic" element={<Forensic />} />
           <Route path="/institute" element={<Institute />} />
+          
+          {/* Admin Routes */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route 
+            path="/admin/dashboard" 
+            element={
+              <ProtectedRoute>
+                <Dashboard />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/carousel" 
+            element={
+              <ProtectedRoute>
+                <CarouselManager />
+              </ProtectedRoute>
+            } 
+          />
         </Routes>
       </main>
-      <Footer />
+      {!isAdminPath && <Footer />}
     </div>
   );
 };

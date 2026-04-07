@@ -2,60 +2,43 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion'; // Using framer-motion for animations
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-
-interface CarouselItem {
-  id: number;
-  image: string;
-  title: string;
-  link: string;
-}
-
-const carouselItems: CarouselItem[] = [
-  {
-    id: 1,
-    image: 'https://picsum.photos/seed/news1/1920/1080',
-    title: 'إعلان هام بخصوص تجديد الكارنيهات لعام 2024',
-    link: '/news/renewal-2024',
-  },
-  {
-    id: 2,
-    image: 'https://picsum.photos/seed/news2/1920/1080',
-    title: 'ورشة عمل حول آخر التعديلات القانونية في قانون العمل',
-    link: '/news/labor-law-workshop',
-  },
-  {
-    id: 3,
-    image: 'https://picsum.photos/seed/news3/1920/1080',
-    title: 'افتتاح الدورة التدريبية الجديدة لمعهد المحاماة',
-    link: '/institute',
-  },
-  {
-    id: 4,
-    image: 'https://picsum.photos/seed/news4/1920/1080',
-    title: 'ندوة تثقيفية حول حقوق المحامين وواجباتهم',
-    link: '/news/lawyers-rights',
-  },
-];
+import { initialCarouselItems, CarouselItem } from '../data/carousel';
 
 const ImageCarousel: React.FC = () => {
+  const [carouselItems, setCarouselItems] = useState<CarouselItem[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
 
+  useEffect(() => {
+    // محاكاة جلب البيانات من التخزين المحلي أو الخادم
+    const savedItems = localStorage.getItem('carouselItems');
+    if (savedItems) {
+      setCarouselItems(JSON.parse(savedItems));
+    } else {
+      setCarouselItems(initialCarouselItems);
+    }
+  }, []);
+
   const goToNext = () => {
+    if (carouselItems.length === 0) return;
     setCurrentIndex((prevIndex) =>
       prevIndex === carouselItems.length - 1 ? 0 : prevIndex + 1
     );
   };
 
   const goToPrevious = () => {
+    if (carouselItems.length === 0) return;
     setCurrentIndex((prevIndex) =>
       prevIndex === 0 ? carouselItems.length - 1 : prevIndex - 1
     );
   };
 
   useEffect(() => {
-    const timer = setInterval(goToNext, 5000); // Auto-advance every 5 seconds
+    if (carouselItems.length === 0) return;
+    const timer = setInterval(goToNext, 5000);
     return () => clearInterval(timer);
-  }, []);
+  }, [carouselItems]);
+
+  if (carouselItems.length === 0) return null;
 
   return (
     <div className="relative w-full h-[500px] overflow-hidden">
