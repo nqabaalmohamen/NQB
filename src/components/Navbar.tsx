@@ -99,15 +99,15 @@ const Navbar = () => {
   };
 
   return (
-    <nav className="bg-primary text-white sticky top-0 z-50 shadow-2xl border-b-4 border-secondary">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-24">
-          {/* Logo Section */}
-          <Link to="/" className="flex items-center gap-4 group">
+    <nav className="bg-primary text-white sticky top-0 z-50 shadow-2xl border-b-4 border-secondary" dir="rtl">
+      <div className="w-full mx-auto px-4 sm:px-6 lg:px-12">
+        <div className="flex flex-row justify-between h-24 items-center">
+          {/* Logo Section - Right side in RTL */}
+          <Link to="/" className="flex items-center gap-4 group shrink-0">
             <div className="bg-gradient-to-br from-white to-accent p-2.5 rounded-xl border-2 border-secondary shadow-lg transform group-hover:rotate-6 transition-transform duration-300">
               <Scale className="h-8 w-8 text-primary" />
             </div>
-            <div className="flex flex-col items-center">
+            <div className="flex flex-col items-start">
               <h1 className="text-2xl font-serif font-bold tracking-normal text-white leading-none">نقابة المحامين</h1>
               <div className="flex items-center w-full gap-2 mt-1.5">
                 <div className="h-[1px] flex-grow bg-secondary/40"></div>
@@ -117,8 +117,8 @@ const Navbar = () => {
             </div>
           </Link>
 
-          {/* Desktop Menu */}
-          <div className="hidden lg:flex items-center space-x-reverse space-x-6">
+          {/* Desktop Menu - Left side in RTL */}
+          <div className="hidden lg:flex items-center space-x-reverse space-x-8">
             {navLinks.map((link) => (
               <div key={link.name} className="relative group">
                 {link.dropdown ? (
@@ -133,14 +133,14 @@ const Navbar = () => {
                     
                     {/* Dropdown */}
                     <div className={cn(
-                      "absolute top-full right-0 w-56 bg-white text-primary shadow-2xl rounded-xl border-t-4 border-secondary transition-all duration-300 origin-top mt-1 overflow-hidden",
+                      "absolute top-full right-0 w-56 bg-white text-primary shadow-2xl rounded-xl border-t-4 border-secondary transition-all duration-300 origin-top mt-1 overflow-hidden z-50",
                       servicesOpen ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-0 -translate-y-2 pointer-events-none"
                     )}>
                       {link.dropdown.map((sub) => (
                         <Link
                           key={sub.name}
                           to={sub.path}
-                          className="block px-6 py-4 hover:bg-accent hover:text-secondary font-bold transition-colors border-b border-gray-100 last:border-0"
+                          className="block px-6 py-4 hover:bg-accent hover:text-secondary font-bold transition-colors border-b border-gray-100 last:border-0 text-right"
                         >
                           {sub.name}
                         </Link>
@@ -173,7 +173,7 @@ const Navbar = () => {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   placeholder="ابحث في الموقع..."
-                  className="bg-transparent border-0 text-white text-sm focus:ring-0 w-full placeholder:text-white/50"
+                  className="bg-transparent border-0 text-white text-sm focus:ring-0 w-full placeholder:text-white/50 text-right"
                 />
                 <button type="submit" className="text-secondary hover:scale-110 transition-transform">
                   <Search className="h-4 w-4" />
@@ -181,7 +181,7 @@ const Navbar = () => {
 
                 {/* Desktop Suggestions */}
                 {suggestions.length > 0 && (
-                  <div className="absolute top-full left-0 w-full bg-white text-primary mt-2 rounded-xl shadow-2xl border-t-4 border-secondary overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
+                  <div className="absolute top-full right-0 w-full bg-white text-primary mt-2 rounded-xl shadow-2xl border-t-4 border-secondary overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
                     {suggestions.map((item, i) => (
                       <button
                         key={i}
