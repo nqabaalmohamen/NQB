@@ -49,7 +49,7 @@ const AppContent = () => {
 
 export default function App() {
   return (
-    <Router>
+    <Router basename="/NQB">
       <AppContent />
     </Router>
   );
