@@ -19,6 +19,11 @@ import Dashboard from './pages/admin/Dashboard';
 import CarouselManager from './pages/admin/CarouselManager';
 import NewsManager from './pages/admin/NewsManager';
 import CouncilManager from './pages/admin/CouncilManager';
+import ForensicManager from './pages/admin/ForensicManager';
+import LibraryManager from './pages/admin/LibraryManager';
+import InstituteManager from './pages/admin/InstituteManager';
+import SettingsManager from './pages/admin/SettingsManager';
+import MessagesManager from './pages/admin/MessagesManager';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 
 const AppContent = () => {
@@ -50,38 +55,15 @@ const AppContent = () => {
           
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />
-          <Route 
-            path="/admin/dashboard" 
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/carousel" 
-            element={
-              <ProtectedRoute>
-                <CarouselManager />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/news" 
-            element={
-              <ProtectedRoute>
-                <NewsManager />
-              </ProtectedRoute>
-            } 
-          />
-          <Route 
-            path="/admin/council" 
-            element={
-              <ProtectedRoute>
-                <CouncilManager />
-              </ProtectedRoute>
-            } 
-          />
+          <Route path="/admin/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/admin/carousel" element={<ProtectedRoute><CarouselManager /></ProtectedRoute>} />
+          <Route path="/admin/news" element={<ProtectedRoute><NewsManager /></ProtectedRoute>} />
+          <Route path="/admin/council" element={<ProtectedRoute><CouncilManager /></ProtectedRoute>} />
+          <Route path="/admin/forensic" element={<ProtectedRoute><ForensicManager /></ProtectedRoute>} />
+          <Route path="/admin/library" element={<ProtectedRoute><LibraryManager /></ProtectedRoute>} />
+          <Route path="/admin/institute" element={<ProtectedRoute><InstituteManager /></ProtectedRoute>} />
+          <Route path="/admin/settings" element={<ProtectedRoute><SettingsManager /></ProtectedRoute>} />
+          <Route path="/admin/messages" element={<ProtectedRoute><MessagesManager /></ProtectedRoute>} />
         </Routes>
       </main>
       {!isAdminPath && <Footer />}

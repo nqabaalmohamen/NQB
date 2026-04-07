@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion'; // Using framer-motion for animations
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { initialCarouselItems, CarouselItem } from '../data/carousel';
+import { initialCarouselItems, CarouselItem } from '../data/store';
 
 const ImageCarousel: React.FC = () => {
   const [carouselItems, setCarouselItems] = useState<CarouselItem[]>([]);

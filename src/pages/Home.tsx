@@ -3,7 +3,7 @@ import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { Scale, ShieldCheck, GraduationCap, BookOpen, Newspaper, Bell } from 'lucide-react';
 import ImageCarousel from '../components/ImageCarousel';
-import { initialNewsItems, NewsItem } from '../data/carousel';
+import { initialNewsItems, NewsItem } from '../data/store';
 
 const Home = () => {
   const [news, setNews] = useState<NewsItem[]>([]);

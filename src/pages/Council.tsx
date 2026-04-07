@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Users, Award, Briefcase } from 'lucide-react';
-import { initialCouncilMembers, CouncilMember } from '../data/carousel';
+import { initialCouncilMembers, CouncilMember } from '../data/store';
 
 const Council = () => {
   const [members, setMembers] = useState<CouncilMember[]>([]);

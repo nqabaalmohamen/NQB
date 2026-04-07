@@ -1,7 +1,32 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Facebook, Twitter, Instagram, Mail, Phone, MapPin, Scale } from 'lucide-react';
 
+interface SiteSettings {
+  siteName: string;
+  contactEmail: string;
+  contactPhone: string;
+  address: string;
+  footerText: string;
+}
+
+const defaultSettings: SiteSettings = {
+  siteName: 'نقابة المحامين بالفيوم',
+  contactEmail: 'info@fayoumlawyers.org',
+  contactPhone: '084-1234567',
+  address: 'الفيوم - شارع المحكمة - مبنى نقابة المحامين',
+  footerText: `جميع الحقوق محفوظة © ${new Date().getFullYear()} نقابة المحامين بالفيوم`
+};
+
 const Footer = () => {
+  const [settings, setSettings] = useState<SiteSettings>(defaultSettings);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('siteSettings');
+    if (saved) {
+      setSettings(JSON.parse(saved));
+    }
+  }, []);
+
   return (
     <footer className="bg-primary text-white border-t-4 border-secondary pt-12 pb-6">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -13,16 +38,16 @@ const Footer = () => {
                 <Scale className="h-8 w-8 text-primary" />
               </div>
               <div className="flex flex-col">
-                <h3 className="text-xl font-serif font-bold leading-none">نقابة المحامين</h3>
+                <h3 className="text-xl font-serif font-bold leading-none">{settings.siteName.split(' ')[0]} {settings.siteName.split(' ')[1]}</h3>
                 <div className="flex items-center w-full gap-2 mt-1">
                   <div className="h-[1px] flex-grow bg-secondary/40"></div>
-                  <span className="text-secondary text-xs font-serif font-bold">بالفيوم</span>
+                  <span className="text-secondary text-xs font-serif font-bold">{settings.siteName.split(' ').slice(2).join(' ')}</span>
                   <div className="h-[1px] flex-grow bg-secondary/40"></div>
                 </div>
               </div>
             </div>
             <p className="text-gray-300 leading-relaxed text-sm">
-              الموقع الرسمي لنقابة المحامين بالفيوم، نسعى لتقديم أفضل الخدمات الإلكترونية والمهنية للسادة المحامين وتطوير منظومة العمل النقابي.
+              الموقع الرسمي ل{settings.siteName}، نسعى لتقديم أفضل الخدمات الإلكترونية والمهنية للسادة المحامين وتطوير منظومة العمل النقابي.
             </p>
           </div>
 
@@ -32,15 +57,15 @@ const Footer = () => {
             <ul className="space-y-4 text-sm text-gray-300">
               <li className="flex items-center gap-3">
                 <MapPin className="h-5 w-5 text-secondary" />
-                <span>الفيوم، شارع المحكمة، مجمع النقابات</span>
+                <span>{settings.address}</span>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="h-5 w-5 text-secondary" />
-                <span>084-XXXXXXX</span>
+                <span>{settings.contactPhone}</span>
               </li>
               <li className="flex items-center gap-3">
                 <Mail className="h-5 w-5 text-secondary" />
-                <span>moh602913@gmail.com</span>
+                <span>{settings.contactEmail}</span>
               </li>
             </ul>
           </div>
@@ -63,7 +88,7 @@ const Footer = () => {
         </div>
 
         <div className="border-t border-white/10 pt-6 text-center text-xs text-gray-400">
-          <p>© {new Date().getFullYear()} جميع الحقوق محفوظة لنقابة المحامين بالفيوم</p>
+          <p>{settings.footerText}</p>
         </div>
       </div>
     </footer>

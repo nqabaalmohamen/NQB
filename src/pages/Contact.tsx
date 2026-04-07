@@ -20,11 +20,23 @@ const Contact = () => {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     
+    // حفظ الرسالة محلياً للمسئول
+    const savedMessages = JSON.parse(localStorage.getItem('contactMessages') || '[]');
+    const newMessage = {
+      ...formData,
+      id: Date.now(),
+      date: new Date().toLocaleDateString('ar-EG', { day: 'numeric', month: 'long', year: 'numeric', hour: 'numeric', minute: 'numeric' }),
+      read: false
+    };
+    localStorage.setItem('contactMessages', JSON.stringify([newMessage, ...savedMessages]));
+
     const mailtoLink = `mailto:moh602913@gmail.com?subject=${encodeURIComponent(formData.subject || 'رسالة من موقع نقابة المحامين')}&body=${encodeURIComponent(
       `الاسم: ${formData.name}\nرقم القيد: ${formData.idNumber}\nالبريد الإلكتروني: ${formData.email}\n\nالرسالة:\n${formData.message}`
     )}`;
     
     window.location.href = mailtoLink;
+    alert('تم إرسال رسالتك بنجاح وسيتم التواصل معك قريباً');
+    setFormData({ name: '', idNumber: '', email: '', subject: '', message: '' });
   };
 
   return (

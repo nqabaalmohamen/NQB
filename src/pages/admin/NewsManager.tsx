@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { initialNewsItems, NewsItem } from '../../data/carousel';
-import { Plus, Trash2, Edit2, Save, X, Newspaper, Calendar, Image as ImageIcon } from 'lucide-react';
+import { initialNewsItems, NewsItem } from '../../data/store';
+import { Plus, Trash2, Edit2, Save, X, Newspaper, Calendar, Image as ImageIcon, Upload } from 'lucide-react';
+import { handleImageUpload } from '../../lib/imageUtils';
 
 const NewsManager = () => {
   const [items, setItems] = useState<NewsItem[]>([]);
   const [isEditing, setIsEditing] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<NewsItem | null>(null);
   const [isAdding, setIsAdding] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     const saved = localStorage.getItem('newsItems');
@@ -20,6 +22,22 @@ const NewsManager = () => {
   const saveToStorage = (newItems: NewsItem[]) => {
     setItems(newItems);
     localStorage.setItem('newsItems', JSON.stringify(newItems));
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file && editForm) {
+      setUploading(true);
+      try {
+        const base64 = await handleImageUpload(file);
+        setEditForm({ ...editForm, image: base64 });
+      } catch (error) {
+        console.error('Error uploading image:', error);
+        alert('حدث خطأ أثناء رفع الصورة');
+      } finally {
+        setUploading(false);
+      }
+    }
   };
 
   const handleDelete = (id: number) => {
@@ -91,14 +109,28 @@ const NewsManager = () => {
                 />
               </div>
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">رابط صورة الخبر</label>
-                <input
-                  type="text"
-                  value={editForm?.image || ''}
-                  onChange={(e) => setEditForm({ ...editForm!, image: e.target.value })}
-                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all"
-                  placeholder="https://example.com/news-image.jpg"
-                />
+                <label className="block text-sm font-bold text-gray-700 mb-2">صورة الخبر</label>
+                <div className="flex gap-4 items-center">
+                  <div className="relative group flex-grow">
+                    <input
+                      type="text"
+                      value={editForm?.image || ''}
+                      onChange={(e) => setEditForm({ ...editForm!, image: e.target.value })}
+                      className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all"
+                      placeholder="https://example.com/news-image.jpg"
+                    />
+                  </div>
+                  <label className="bg-secondary text-primary px-4 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-white border-2 border-secondary transition-all cursor-pointer shadow-sm">
+                    {uploading ? <div className="animate-spin h-5 w-5 border-2 border-primary border-t-transparent rounded-full" /> : <Upload className="h-5 w-5" />}
+                    <span>{uploading ? 'جاري الرفع...' : 'رفع'}</span>
+                    <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
+                  </label>
+                </div>
+                {editForm?.image && (
+                  <div className="mt-4 relative w-32 h-20 rounded-lg overflow-hidden border border-gray-200">
+                    <img src={editForm.image} alt="Preview" className="w-full h-full object-cover" />
+                  </div>
+                )}
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">تاريخ النشر</label>
