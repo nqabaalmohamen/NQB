@@ -2,46 +2,13 @@ import React from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { Scale, ShieldCheck, GraduationCap, BookOpen, Newspaper, Bell } from 'lucide-react';
+import ImageCarousel from '../components/ImageCarousel'; // استيراد مكون عرض الشرائح
 
 const Home = () => {
   return (
     <div className="flex flex-col gap-16 pb-20">
-      {/* Hero Section */}
-      <section className="relative h-[500px] flex items-center justify-center overflow-hidden">
-        <div className="absolute inset-0 z-0">
-          <img 
-            src="https://picsum.photos/seed/court/1920/1080" 
-            alt="Fayoum Court" 
-            className="w-full h-full object-cover brightness-50"
-            referrerPolicy="no-referrer"
-          />
-          <div className="absolute inset-0 bg-gradient-to-b from-primary/60 to-primary/90"></div>
-        </div>
-        
-        <div className="relative z-10 text-center text-white px-4 max-w-4xl">
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-          >
-            <h1 className="text-4xl md:text-6xl font-serif mb-6 leading-tight">
-              نقابة المحامين بالفيوم <br/>
-              <span className="text-secondary font-bold">صوت الحق ومنارة العدالة</span>
-            </h1>
-            <p className="text-lg md:text-xl text-gray-200 mb-8 max-w-2xl mx-auto">
-              نعمل على تمكين المحامين وتطوير مهنة المحاماة من خلال تقديم خدمات متميزة وبرامج تدريبية متطورة.
-            </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              <Link to="/forensic" className="bg-secondary text-primary font-bold px-8 py-3 rounded-md hover:bg-white transition-all shadow-lg flex items-center justify-center">
-                الخدمات الإلكترونية
-              </Link>
-              <Link to="/council" className="bg-transparent border-2 border-white text-white font-bold px-8 py-3 rounded-md hover:bg-white hover:text-primary transition-all flex items-center justify-center">
-                عن النقابة
-              </Link>
-            </div>
-          </motion.div>
-        </div>
-      </section>
+      {/* Image Carousel Section */}
+      <ImageCarousel />
 
       {/* Quick Access Cards */}
       <section className="max-w-7xl mx-auto px-4 w-full -mt-24 relative z-20">
