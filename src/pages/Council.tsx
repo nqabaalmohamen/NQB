@@ -1,16 +1,19 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Users, Award, Briefcase } from 'lucide-react';
+import { initialCouncilMembers, CouncilMember } from '../data/carousel';
 
 const Council = () => {
-  const members = [
-    { name: 'الأستاذ/ فلان الفلاني', role: 'نقيب محامين الفيوم', image: 'https://picsum.photos/seed/person1/300/300' },
-    { name: 'الأستاذ/ علان العلاني', role: 'وكيل النقابة', image: 'https://picsum.photos/seed/person2/300/300' },
-    { name: 'الأستاذ/ فلان بن فلان', role: 'أمين الصندوق', image: 'https://picsum.photos/seed/person3/300/300' },
-    { name: 'الأستاذ/ اسم العضو', role: 'عضو مجلس', image: 'https://picsum.photos/seed/person4/300/300' },
-    { name: 'الأستاذ/ اسم العضو', role: 'عضو مجلس', image: 'https://picsum.photos/seed/person5/300/300' },
-    { name: 'الأستاذ/ اسم العضو', role: 'عضو مجلس', image: 'https://picsum.photos/seed/person6/300/300' },
-  ];
+  const [members, setMembers] = useState<CouncilMember[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('councilMembers');
+    if (saved) {
+      setMembers(JSON.parse(saved));
+    } else {
+      setMembers(initialCouncilMembers);
+    }
+  }, []);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-16">
@@ -23,9 +26,9 @@ const Council = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-10">
-        {members.map((member, idx) => (
+        {members.map((member) => (
           <motion.div
-            key={idx}
+            key={member.id}
             initial={{ opacity: 0, scale: 0.9 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}

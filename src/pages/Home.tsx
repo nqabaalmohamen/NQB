@@ -1,10 +1,22 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { Scale, ShieldCheck, GraduationCap, BookOpen, Newspaper, Bell } from 'lucide-react';
-import ImageCarousel from '../components/ImageCarousel'; // استيراد مكون عرض الشرائح
+import ImageCarousel from '../components/ImageCarousel';
+import { initialNewsItems, NewsItem } from '../data/carousel';
 
 const Home = () => {
+  const [news, setNews] = useState<NewsItem[]>([]);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('newsItems');
+    if (saved) {
+      setNews(JSON.parse(saved));
+    } else {
+      setNews(initialNewsItems);
+    }
+  }, []);
+
   return (
     <div className="flex flex-col gap-16 pb-20">
       {/* Image Carousel Section */}
@@ -43,12 +55,12 @@ const Home = () => {
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {[1, 2, 3].map((i) => (
-            <div key={i} className="bg-white rounded-lg overflow-hidden shadow-md group">
+          {news.slice(0, 3).map((item) => (
+            <div key={item.id} className="bg-white rounded-lg overflow-hidden shadow-md group">
               <div className="h-48 overflow-hidden">
                 <img 
-                  src={`https://picsum.photos/seed/news${i}/600/400`} 
-                  alt="News" 
+                  src={item.image} 
+                  alt={item.title} 
                   className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                   referrerPolicy="no-referrer"
                 />
@@ -56,13 +68,13 @@ const Home = () => {
               <div className="p-6">
                 <div className="flex items-center gap-2 text-xs text-gray-400 mb-3">
                   <Bell className="h-4 w-4" />
-                  <span>15 مارس 2024</span>
+                  <span>{item.date}</span>
                 </div>
-                <h4 className="font-bold text-lg mb-3 group-hover:text-secondary transition-colors">
-                  إعلان هام بخصوص تجديد الكارنيهات لعام 2024
+                <h4 className="font-bold text-lg mb-3 group-hover:text-secondary transition-colors line-clamp-2">
+                  {item.title}
                 </h4>
                 <p className="text-gray-600 text-sm line-clamp-2">
-                  تعلن نقابة المحامين بالفيوم عن بدء إجراءات تجديد العضوية السنوية وتوفير منافذ جديدة لتسهيل الإجراءات...
+                  {item.content}
                 </p>
               </div>
             </div>

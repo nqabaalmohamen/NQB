@@ -17,6 +17,8 @@ import LoadingSpinner from './components/LoadingSpinner';
 import AdminLogin from './pages/admin/Login';
 import Dashboard from './pages/admin/Dashboard';
 import CarouselManager from './pages/admin/CarouselManager';
+import NewsManager from './pages/admin/NewsManager';
+import CouncilManager from './pages/admin/CouncilManager';
 import ProtectedRoute from './components/admin/ProtectedRoute';
 
 const AppContent = () => {
@@ -61,6 +63,22 @@ const AppContent = () => {
             element={
               <ProtectedRoute>
                 <CarouselManager />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/news" 
+            element={
+              <ProtectedRoute>
+                <NewsManager />
+              </ProtectedRoute>
+            } 
+          />
+          <Route 
+            path="/admin/council" 
+            element={
+              <ProtectedRoute>
+                <CouncilManager />
               </ProtectedRoute>
             } 
           />
