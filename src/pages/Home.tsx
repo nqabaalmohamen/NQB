@@ -9,12 +9,23 @@ const Home = () => {
   const [news, setNews] = useState<NewsItem[]>([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('newsItems');
-    if (saved) {
-      setNews(JSON.parse(saved));
-    } else {
-      setNews(initialNewsItems);
-    }
+    const loadNews = () => {
+      const saved = localStorage.getItem('newsItems');
+      if (saved) {
+        setNews(JSON.parse(saved));
+      } else {
+        setNews(initialNewsItems);
+      }
+    };
+
+    loadNews();
+    window.addEventListener('storage', loadNews);
+    window.addEventListener('newsUpdated', loadNews);
+
+    return () => {
+      window.removeEventListener('storage', loadNews);
+      window.removeEventListener('newsUpdated', loadNews);
+    };
   }, []);
 
   return (

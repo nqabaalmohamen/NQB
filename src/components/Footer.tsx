@@ -6,11 +6,28 @@ const Footer = () => {
   const [settings, setSettings] = useState<SiteSettings>(initialSiteSettings);
 
   useEffect(() => {
-    const saved = localStorage.getItem('siteSettings');
-    if (saved) {
-      setSettings(JSON.parse(saved));
-    }
+    const loadSettings = () => {
+      const saved = localStorage.getItem('siteSettings');
+      if (saved) {
+        setSettings(JSON.parse(saved));
+      } else {
+        setSettings(initialSiteSettings);
+      }
+    };
+
+    loadSettings();
+    window.addEventListener('storage', loadSettings);
+    window.addEventListener('siteSettingsUpdated', loadSettings);
+
+    return () => {
+      window.removeEventListener('storage', loadSettings);
+      window.removeEventListener('siteSettingsUpdated', loadSettings);
+    };
   }, []);
+
+  const siteNameParts = settings.siteName.split(' ');
+  const mainName = siteNameParts.slice(0, 2).join(' ');
+  const subName = siteNameParts.slice(2).join(' ');
 
   return (
     <footer className="bg-primary text-white border-t-4 border-secondary pt-12 pb-6">
@@ -23,12 +40,14 @@ const Footer = () => {
                 <Scale className="h-8 w-8 text-primary" />
               </div>
               <div className="flex flex-col">
-                <h3 className="text-xl font-serif font-bold leading-none">{settings.siteName.split(' ')[0]} {settings.siteName.split(' ')[1]}</h3>
-                <div className="flex items-center w-full gap-2 mt-1">
-                  <div className="h-[1px] flex-grow bg-secondary/40"></div>
-                  <span className="text-secondary text-xs font-serif font-bold">{settings.siteName.split(' ').slice(2).join(' ')}</span>
-                  <div className="h-[1px] flex-grow bg-secondary/40"></div>
-                </div>
+                <h3 className="text-xl font-serif font-bold leading-none">{mainName}</h3>
+                {subName && (
+                  <div className="flex items-center w-full gap-2 mt-1">
+                    <div className="h-[1px] flex-grow bg-secondary/40"></div>
+                    <span className="text-secondary text-xs font-serif font-bold">{subName}</span>
+                    <div className="h-[1px] flex-grow bg-secondary/40"></div>
+                  </div>
+                )}
               </div>
             </div>
             <p className="text-gray-300 leading-relaxed text-sm">

@@ -23,12 +23,23 @@ const Library = () => {
   const [downloading, setDownloading] = useState<number | null>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('libraryResources');
-    if (saved) {
-      setResources(JSON.parse(saved));
-    } else {
-      setResources(initialLibraryResources);
-    }
+    const loadResources = () => {
+      const saved = localStorage.getItem('libraryResources');
+      if (saved) {
+        setResources(JSON.parse(saved));
+      } else {
+        setResources(initialLibraryResources);
+      }
+    };
+
+    loadResources();
+    window.addEventListener('storage', loadResources);
+    window.addEventListener('libraryUpdated', loadResources);
+
+    return () => {
+      window.removeEventListener('storage', loadResources);
+      window.removeEventListener('libraryUpdated', loadResources);
+    };
   }, []);
 
   const handleSearchChange = (value: string) => {

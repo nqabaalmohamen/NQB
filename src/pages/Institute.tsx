@@ -6,10 +6,23 @@ const Institute = () => {
   const [data, setData] = useState<InstituteData>(initialInstituteData);
 
   useEffect(() => {
-    const saved = localStorage.getItem('instituteData');
-    if (saved) {
-      setData(JSON.parse(saved));
-    }
+    const loadData = () => {
+      const saved = localStorage.getItem('instituteData');
+      if (saved) {
+        setData(JSON.parse(saved));
+      } else {
+        setData(initialInstituteData);
+      }
+    };
+
+    loadData();
+    window.addEventListener('storage', loadData);
+    window.addEventListener('instituteUpdated', loadData);
+
+    return () => {
+      window.removeEventListener('storage', loadData);
+      window.removeEventListener('instituteUpdated', loadData);
+    };
   }, []);
 
   return (

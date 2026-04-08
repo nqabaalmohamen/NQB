@@ -22,6 +22,7 @@ const CarouselManager = () => {
   const saveToStorage = (newItems: CarouselItem[]) => {
     setItems(newItems);
     localStorage.setItem('carouselItems', JSON.stringify(newItems));
+    window.dispatchEvent(new Event('carouselUpdated'));
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

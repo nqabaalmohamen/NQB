@@ -22,6 +22,7 @@ const NewsManager = () => {
   const saveToStorage = (newItems: NewsItem[]) => {
     setItems(newItems);
     localStorage.setItem('newsItems', JSON.stringify(newItems));
+    window.dispatchEvent(new Event('newsUpdated'));
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

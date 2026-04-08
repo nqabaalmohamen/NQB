@@ -22,6 +22,7 @@ const CouncilManager = () => {
   const saveToStorage = (newItems: CouncilMember[]) => {
     setItems(newItems);
     localStorage.setItem('councilMembers', JSON.stringify(newItems));
+    window.dispatchEvent(new Event('councilUpdated'));
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

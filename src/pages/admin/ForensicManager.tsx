@@ -17,6 +17,7 @@ const ForensicManager = () => {
   const saveToStorage = (newData: ForensicData) => {
     setData(newData);
     localStorage.setItem('forensicData', JSON.stringify(newData));
+    window.dispatchEvent(new Event('forensicUpdated'));
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

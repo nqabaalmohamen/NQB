@@ -9,13 +9,23 @@ const ImageCarousel: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   useEffect(() => {
-    // محاكاة جلب البيانات من التخزين المحلي أو الخادم
-    const savedItems = localStorage.getItem('carouselItems');
-    if (savedItems) {
-      setCarouselItems(JSON.parse(savedItems));
-    } else {
-      setCarouselItems(initialCarouselItems);
-    }
+    const loadItems = () => {
+      const savedItems = localStorage.getItem('carouselItems');
+      if (savedItems) {
+        setCarouselItems(JSON.parse(savedItems));
+      } else {
+        setCarouselItems(initialCarouselItems);
+      }
+    };
+
+    loadItems();
+    window.addEventListener('storage', loadItems);
+    window.addEventListener('carouselUpdated', loadItems);
+
+    return () => {
+      window.removeEventListener('storage', loadItems);
+      window.removeEventListener('carouselUpdated', loadItems);
+    };
   }, []);
 
   const goToNext = () => {

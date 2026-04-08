@@ -20,6 +20,7 @@ const LibraryManager = () => {
   const saveToStorage = (newItems: LibraryResource[]) => {
     setItems(newItems);
     localStorage.setItem('libraryResources', JSON.stringify(newItems));
+    window.dispatchEvent(new Event('libraryUpdated'));
   };
 
   const handleDelete = (id: number) => {

@@ -17,6 +17,7 @@ const InstituteManager = () => {
   const saveToStorage = (newData: InstituteData) => {
     setData(newData);
     localStorage.setItem('instituteData', JSON.stringify(newData));
+    window.dispatchEvent(new Event('instituteUpdated'));
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -14,6 +14,8 @@ const SettingsManager = () => {
 
   const handleSave = () => {
     localStorage.setItem('siteSettings', JSON.stringify(settings));
+    // Dispatch custom event to notify other components in the same tab
+    window.dispatchEvent(new Event('siteSettingsUpdated'));
     alert('تم حفظ الإعدادات بنجاح');
   };
 

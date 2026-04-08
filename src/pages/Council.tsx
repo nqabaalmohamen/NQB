@@ -7,12 +7,23 @@ const Council = () => {
   const [members, setMembers] = useState<CouncilMember[]>([]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('councilMembers');
-    if (saved) {
-      setMembers(JSON.parse(saved));
-    } else {
-      setMembers(initialCouncilMembers);
-    }
+    const loadMembers = () => {
+      const saved = localStorage.getItem('councilMembers');
+      if (saved) {
+        setMembers(JSON.parse(saved));
+      } else {
+        setMembers(initialCouncilMembers);
+      }
+    };
+
+    loadMembers();
+    window.addEventListener('storage', loadMembers);
+    window.addEventListener('councilUpdated', loadMembers);
+
+    return () => {
+      window.removeEventListener('storage', loadMembers);
+      window.removeEventListener('councilUpdated', loadMembers);
+    };
   }, []);
 
   return (

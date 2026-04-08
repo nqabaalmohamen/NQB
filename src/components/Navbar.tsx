@@ -15,11 +15,31 @@ const Navbar = () => {
   const location = useLocation();
 
   useEffect(() => {
-    const saved = localStorage.getItem('siteSettings');
-    if (saved) {
-      setSettings(JSON.parse(saved));
-    }
+    const loadSettings = () => {
+      const saved = localStorage.getItem('siteSettings');
+      if (saved) {
+        setSettings(JSON.parse(saved));
+      } else {
+        setSettings(initialSiteSettings);
+      }
+    };
+
+    loadSettings();
+
+    // Listen for storage changes (other tabs)
+    window.addEventListener('storage', loadSettings);
+    // Listen for custom event (same tab)
+    window.addEventListener('siteSettingsUpdated', loadSettings);
+
+    return () => {
+      window.removeEventListener('storage', loadSettings);
+      window.removeEventListener('siteSettingsUpdated', loadSettings);
+    };
   }, []);
+
+  const siteNameParts = settings.siteName.split(' ');
+  const mainName = siteNameParts.slice(0, 2).join(' ');
+  const subName = siteNameParts.slice(2).join(' ');
 
   const normalizeArabic = (text: string) => {
     return text
@@ -117,12 +137,14 @@ const Navbar = () => {
               <Scale className="h-7 w-7 text-secondary" />
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-serif font-bold text-primary tracking-tight leading-none">{settings.siteName.split(' ')[0]} {settings.siteName.split(' ')[1]}</span>
-              <div className="flex items-center w-full gap-2 mt-1">
-                <div className="h-[1px] flex-grow bg-secondary/30"></div>
-                <span className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">{settings.siteName.split(' ').slice(2).join(' ')}</span>
-                <div className="h-[1px] flex-grow bg-secondary/30"></div>
-              </div>
+              <span className="text-xl font-serif font-bold text-white tracking-tight leading-none">{mainName}</span>
+              {subName && (
+                <div className="flex items-center w-full gap-2 mt-1">
+                  <div className="h-[1px] flex-grow bg-secondary/30"></div>
+                  <span className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">{subName}</span>
+                  <div className="h-[1px] flex-grow bg-secondary/30"></div>
+                </div>
+              )}
             </div>
           </Link>
 

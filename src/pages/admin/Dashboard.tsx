@@ -41,17 +41,30 @@ const Dashboard = () => {
   ]);
 
   useEffect(() => {
-    const news = JSON.parse(localStorage.getItem('newsItems') || JSON.stringify(initialNewsItems));
-    const carousel = JSON.parse(localStorage.getItem('carouselItems') || JSON.stringify(initialCarouselItems));
-    const council = JSON.parse(localStorage.getItem('councilMembers') || JSON.stringify(initialCouncilMembers));
-    const library = JSON.parse(localStorage.getItem('libraryResources') || JSON.stringify(initialLibraryResources));
+    const updateStats = () => {
+      const news = JSON.parse(localStorage.getItem('newsItems') || JSON.stringify(initialNewsItems));
+      const carousel = JSON.parse(localStorage.getItem('carouselItems') || JSON.stringify(initialCarouselItems));
+      const council = JSON.parse(localStorage.getItem('councilMembers') || JSON.stringify(initialCouncilMembers));
+      const library = JSON.parse(localStorage.getItem('libraryResources') || JSON.stringify(initialLibraryResources));
 
-    setStats([
-      { title: 'إجمالي الأخبار', value: news.length.toString(), icon: Newspaper, color: 'bg-blue-500' },
-      { title: 'صور السلايدر', value: carousel.length.toString(), icon: ImageIcon, color: 'bg-green-500' },
-      { title: 'أعضاء المجلس', value: council.length.toString(), icon: Users, color: 'bg-purple-500' },
-      { title: 'المصادر المكتبية', value: library.length.toString(), icon: BookOpen, color: 'bg-orange-500' },
-    ]);
+      setStats([
+        { title: 'إجمالي الأخبار', value: news.length.toString(), icon: Newspaper, color: 'bg-blue-500' },
+        { title: 'صور السلايدر', value: carousel.length.toString(), icon: ImageIcon, color: 'bg-green-500' },
+        { title: 'أعضاء المجلس', value: council.length.toString(), icon: Users, color: 'bg-purple-500' },
+        { title: 'المصادر المكتبية', value: library.length.toString(), icon: BookOpen, color: 'bg-orange-500' },
+      ]);
+    };
+
+    updateStats();
+    
+    const events = ['newsUpdated', 'carouselUpdated', 'councilUpdated', 'libraryUpdated'];
+    events.forEach(event => window.addEventListener(event, updateStats));
+    window.addEventListener('storage', updateStats);
+
+    return () => {
+      events.forEach(event => window.removeEventListener(event, updateStats));
+      window.removeEventListener('storage', updateStats);
+    };
   }, []);
 
   const handleExportData = () => {
