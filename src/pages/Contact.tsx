@@ -1,7 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, Phone, MapPin, Send, Clock } from 'lucide-react';
+import { initialSiteSettings, SiteSettings } from '../data/store';
 
 const Contact = () => {
+  const [settings, setSettings] = useState<SiteSettings>(initialSiteSettings);
   const [formData, setFormData] = useState({
     name: '',
     idNumber: '',
@@ -9,6 +11,13 @@ const Contact = () => {
     subject: '',
     message: ''
   });
+
+  useEffect(() => {
+    const saved = localStorage.getItem('siteSettings');
+    if (saved) {
+      setSettings(JSON.parse(saved));
+    }
+  }, []);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({
@@ -30,7 +39,7 @@ const Contact = () => {
     };
     localStorage.setItem('contactMessages', JSON.stringify([newMessage, ...savedMessages]));
 
-    const mailtoLink = `mailto:moh602913@gmail.com?subject=${encodeURIComponent(formData.subject || 'رسالة من موقع نقابة المحامين')}&body=${encodeURIComponent(
+    const mailtoLink = `mailto:${settings.contactEmail}?subject=${encodeURIComponent(formData.subject || 'رسالة من موقع نقابة المحامين')}&body=${encodeURIComponent(
       `الاسم: ${formData.name}\nرقم القيد: ${formData.idNumber}\nالبريد الإلكتروني: ${formData.email}\n\nالرسالة:\n${formData.message}`
     )}`;
     
@@ -56,7 +65,7 @@ const Contact = () => {
               </div>
               <div>
                 <h3 className="font-bold text-lg mb-1">المقر الرئيسي</h3>
-                <p className="text-gray-500">الفيوم، شارع المحكمة، مجمع النقابات، الدور الثالث</p>
+                <p className="text-gray-500">{settings.address}</p>
               </div>
             </div>
 
@@ -66,7 +75,7 @@ const Contact = () => {
               </div>
               <div>
                 <h3 className="font-bold text-lg mb-1">أرقام الهاتف</h3>
-                <p className="text-gray-500">084-XXXXXXX / 01XXXXXXXXX</p>
+                <p className="text-gray-500">{settings.contactPhone}</p>
               </div>
             </div>
 
@@ -76,7 +85,7 @@ const Contact = () => {
               </div>
               <div>
                 <h3 className="font-bold text-lg mb-1">البريد الإلكتروني</h3>
-                <p className="text-gray-500">moh602913@gmail.com</p>
+                <p className="text-gray-500">{settings.contactEmail}</p>
               </div>
             </div>
           </div>

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { Scale, ShieldCheck, GraduationCap, BookOpen, Newspaper, Bell } from 'lucide-react';
+import { ShieldCheck, GraduationCap, BookOpen, Newspaper, Bell } from 'lucide-react';
 import ImageCarousel from '../components/ImageCarousel';
 import { initialNewsItems, NewsItem } from '../data/store';
 

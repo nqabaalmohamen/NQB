@@ -1,24 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Globe, Mail, Phone, MapPin, ShieldCheck } from 'lucide-react';
-
-interface SiteSettings {
-  siteName: string;
-  contactEmail: string;
-  contactPhone: string;
-  address: string;
-  footerText: string;
-}
-
-const initialSettings: SiteSettings = {
-  siteName: 'نقابة المحامين بالفيوم',
-  contactEmail: 'info@fayoumlawyers.org',
-  contactPhone: '084-1234567',
-  address: 'الفيوم - شارع المحكمة - مبنى نقابة المحامين',
-  footerText: 'جميع الحقوق محفوظة © 2024 نقابة المحامين بالفيوم'
-};
+import { initialSiteSettings, SiteSettings } from '../../data/store';
 
 const SettingsManager = () => {
-  const [settings, setSettings] = useState<SiteSettings>(initialSettings);
+  const [settings, setSettings] = useState<SiteSettings>(initialSiteSettings);
 
   useEffect(() => {
     const saved = localStorage.getItem('siteSettings');

@@ -50,6 +50,22 @@ export interface InstituteData {
   requirements: string[];
 }
 
+export interface SiteSettings {
+  siteName: string;
+  contactEmail: string;
+  contactPhone: string;
+  address: string;
+  footerText: string;
+}
+
+export const initialSiteSettings: SiteSettings = {
+  siteName: 'نقابة المحامين بالفيوم',
+  contactEmail: 'info@fayoumlawyers.org',
+  contactPhone: '084-1234567',
+  address: 'الفيوم - شارع المحكمة - مبنى نقابة المحامين',
+  footerText: `جميع الحقوق محفوظة © ${new Date().getFullYear()} نقابة المحامين بالفيوم`
+};
+
 export const initialCarouselItems: CarouselItem[] = [
   { id: 1, image: 'https://picsum.photos/seed/news1/1920/1080', title: 'إعلان هام بخصوص تجديد الكارنيهات لعام 2024', link: '/news/renewal-2024' },
   { id: 2, image: 'https://picsum.photos/seed/news2/1920/1080', title: 'ورشة عمل حول آخر التعديلات القانونية في قانون العمل', link: '/news/labor-law-workshop' },

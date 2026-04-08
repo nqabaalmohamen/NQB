@@ -14,8 +14,19 @@ import {
   ShieldAlert,
   BookOpen,
   GraduationCap,
-  ShieldCheck
+  ShieldCheck,
+  Download
 } from 'lucide-react';
+
+import { 
+  initialNewsItems, 
+  initialCarouselItems, 
+  initialCouncilMembers, 
+  initialLibraryResources,
+  initialForensicData,
+  initialInstituteData,
+  initialSiteSettings
+} from '../../data/store';
 
 import SettingsManager from './SettingsManager';
 
@@ -30,10 +41,10 @@ const Dashboard = () => {
   ]);
 
   useEffect(() => {
-    const news = JSON.parse(localStorage.getItem('newsItems') || '[]');
-    const carousel = JSON.parse(localStorage.getItem('carouselItems') || '[]');
-    const council = JSON.parse(localStorage.getItem('councilMembers') || '[]');
-    const library = JSON.parse(localStorage.getItem('libraryResources') || '[]');
+    const news = JSON.parse(localStorage.getItem('newsItems') || JSON.stringify(initialNewsItems));
+    const carousel = JSON.parse(localStorage.getItem('carouselItems') || JSON.stringify(initialCarouselItems));
+    const council = JSON.parse(localStorage.getItem('councilMembers') || JSON.stringify(initialCouncilMembers));
+    const library = JSON.parse(localStorage.getItem('libraryResources') || JSON.stringify(initialLibraryResources));
 
     setStats([
       { title: 'إجمالي الأخبار', value: news.length.toString(), icon: Newspaper, color: 'bg-blue-500' },
@@ -42,6 +53,29 @@ const Dashboard = () => {
       { title: 'المصادر المكتبية', value: library.length.toString(), icon: BookOpen, color: 'bg-orange-500' },
     ]);
   }, []);
+
+  const handleExportData = () => {
+    const data = {
+      newsItems: JSON.parse(localStorage.getItem('newsItems') || JSON.stringify(initialNewsItems)),
+      carouselItems: JSON.parse(localStorage.getItem('carouselItems') || JSON.stringify(initialCarouselItems)),
+      councilMembers: JSON.parse(localStorage.getItem('councilMembers') || JSON.stringify(initialCouncilMembers)),
+      libraryResources: JSON.parse(localStorage.getItem('libraryResources') || JSON.stringify(initialLibraryResources)),
+      forensicData: JSON.parse(localStorage.getItem('forensicData') || JSON.stringify(initialForensicData)),
+      instituteData: JSON.parse(localStorage.getItem('instituteData') || JSON.stringify(initialInstituteData)),
+      siteSettings: JSON.parse(localStorage.getItem('siteSettings') || JSON.stringify(initialSiteSettings)),
+      contactMessages: JSON.parse(localStorage.getItem('contactMessages') || '[]'),
+    };
+
+    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `nqb-data-backup-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  };
 
   const handleLogout = () => {
     localStorage.removeItem('isAdminAuthenticated');
@@ -117,6 +151,24 @@ const Dashboard = () => {
           </div>
         </header>
 
+        {/* Export Data Banner */}
+        <div className="bg-gradient-to-r from-primary to-blue-900 rounded-2xl p-8 mb-10 text-white shadow-xl relative overflow-hidden">
+          <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
+            <div>
+              <h2 className="text-2xl font-bold mb-2">حفظ التعديلات بشكل دائم</h2>
+              <p className="text-white/70">لضمان بقاء التعديلات التي قمت بها في الموقع للجميع، قم بتصدير البيانات وإرسالها للمطور.</p>
+            </div>
+            <button 
+              onClick={handleExportData}
+              className="bg-secondary text-primary px-8 py-4 rounded-xl font-bold flex items-center gap-3 hover:bg-white transition-all shadow-lg whitespace-nowrap"
+            >
+              <Download className="h-6 w-6" />
+              تصدير كافة البيانات (JSON)
+            </button>
+          </div>
+          <div className="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full -translate-x-32 -translate-y-32"></div>
+        </div>
+
         {/* Stats Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
           {stats.map((stat, idx) => (
@@ -150,7 +202,7 @@ const Dashboard = () => {
               <ChevronLeft className="h-5 w-5 text-gray-300 group-hover:translate-x-[-5px] transition-transform" />
             </Link>
 
-            <button className="flex items-center justify-between p-6 bg-accent rounded-xl border border-gray-100 hover:border-secondary transition-all group">
+            <Link to="/admin/news" className="flex items-center justify-between p-6 bg-accent rounded-xl border border-gray-100 hover:border-secondary transition-all group">
               <div className="flex items-center gap-4 text-right">
                 <div className="bg-white p-3 rounded-lg shadow-sm">
                   <Newspaper className="h-6 w-6 text-secondary" />
@@ -161,7 +213,7 @@ const Dashboard = () => {
                 </div>
               </div>
               <ChevronLeft className="h-5 w-5 text-gray-300 group-hover:translate-x-[-5px] transition-transform" />
-            </button>
+            </Link>
 
             <Link to="/admin/messages" className="flex items-center justify-between p-6 bg-accent rounded-xl border border-gray-100 hover:border-secondary transition-all group">
               <div className="flex items-center gap-4 text-right">

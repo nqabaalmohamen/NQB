@@ -1,24 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Facebook, Twitter, Instagram, Mail, Phone, MapPin, Scale } from 'lucide-react';
-
-interface SiteSettings {
-  siteName: string;
-  contactEmail: string;
-  contactPhone: string;
-  address: string;
-  footerText: string;
-}
-
-const defaultSettings: SiteSettings = {
-  siteName: 'نقابة المحامين بالفيوم',
-  contactEmail: 'info@fayoumlawyers.org',
-  contactPhone: '084-1234567',
-  address: 'الفيوم - شارع المحكمة - مبنى نقابة المحامين',
-  footerText: `جميع الحقوق محفوظة © ${new Date().getFullYear()} نقابة المحامين بالفيوم`
-};
+import { initialSiteSettings, SiteSettings } from '../data/store';
 
 const Footer = () => {
-  const [settings, setSettings] = useState<SiteSettings>(defaultSettings);
+  const [settings, setSettings] = useState<SiteSettings>(initialSiteSettings);
 
   useEffect(() => {
     const saved = localStorage.getItem('siteSettings');

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronDown, Menu, X, Scale, BookOpen, Users, Phone, Home, Search } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
+import { initialSiteSettings, SiteSettings } from '../data/store';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -9,8 +10,16 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
+  const [settings, setSettings] = useState<SiteSettings>(initialSiteSettings);
   const navigate = useNavigate();
   const location = useLocation();
+
+  useEffect(() => {
+    const saved = localStorage.getItem('siteSettings');
+    if (saved) {
+      setSettings(JSON.parse(saved));
+    }
+  }, []);
 
   const normalizeArabic = (text: string) => {
     return text
@@ -103,16 +112,16 @@ const Navbar = () => {
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-12">
         <div className="flex flex-row justify-between h-24 items-center">
           {/* Logo Section - Right side in RTL */}
-          <Link to="/" className="flex items-center gap-4 group shrink-0">
-            <div className="bg-gradient-to-br from-white to-accent p-2.5 rounded-xl border-2 border-secondary shadow-lg transform group-hover:rotate-6 transition-transform duration-300">
-              <Scale className="h-8 w-8 text-primary" />
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="bg-primary text-white p-2 rounded-xl border border-white/10 shadow-inner group-hover:scale-110 transition-transform">
+              <Scale className="h-7 w-7 text-secondary" />
             </div>
-            <div className="flex flex-col items-start">
-              <h1 className="text-2xl font-serif font-bold tracking-normal text-white leading-none">نقابة المحامين</h1>
-              <div className="flex items-center w-full gap-2 mt-1.5">
-                <div className="h-[1px] flex-grow bg-secondary/40"></div>
-                <span className="text-secondary text-sm font-serif font-bold whitespace-nowrap">بالفيوم</span>
-                <div className="h-[1px] flex-grow bg-secondary/40"></div>
+            <div className="flex flex-col">
+              <span className="text-xl font-serif font-bold text-primary tracking-tight leading-none">{settings.siteName.split(' ')[0]} {settings.siteName.split(' ')[1]}</span>
+              <div className="flex items-center w-full gap-2 mt-1">
+                <div className="h-[1px] flex-grow bg-secondary/30"></div>
+                <span className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">{settings.siteName.split(' ').slice(2).join(' ')}</span>
+                <div className="h-[1px] flex-grow bg-secondary/30"></div>
               </div>
             </div>
           </Link>
