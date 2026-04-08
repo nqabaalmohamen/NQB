@@ -38,86 +38,132 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
+const loadInitialData = async () => {
+  try {
+    // Try to fetch the latest data from GitHub first to ensure sync
+    const savedSettings = localStorage.getItem('siteSettings');
+    let settings = savedSettings ? JSON.parse(savedSettings) : initialSiteSettings;
+
+    if (settings.githubToken && settings.githubRepo && settings.githubOwner) {
+      const response = await fetch(
+        `https://raw.githubusercontent.com/${settings.githubOwner}/${settings.githubRepo}/main/src/data/data.json?t=${Date.now()}`
+      );
+      if (response.ok) {
+        const remoteData = await response.json();
+        // Merge remote data with local messages which shouldn't be overwritten easily
+        const localMessages = localStorage.getItem('contactMessages');
+        return {
+          ...remoteData,
+          messages: localMessages ? JSON.parse(localMessages) : remoteData.contactMessages || []
+        };
+      }
+    }
+  } catch (e) {
+    console.error('Failed to sync with GitHub, using local data');
+  }
+
+  const savedNews = localStorage.getItem('newsItems');
+  const savedCarousel = localStorage.getItem('carouselItems');
+  const savedMembers = localStorage.getItem('councilMembers');
+  const savedResources = localStorage.getItem('libraryResources');
+  const savedForensic = localStorage.getItem('forensicData');
+  const savedInstitute = localStorage.getItem('instituteData');
+  const savedSettings = localStorage.getItem('siteSettings');
+  const savedMessages = localStorage.getItem('contactMessages');
+
+  return {
+    news: savedNews ? JSON.parse(savedNews) : initialNewsItems,
+    carousel: savedCarousel ? JSON.parse(savedCarousel) : initialCarouselItems,
+    members: savedMembers ? JSON.parse(savedMembers) : initialCouncilMembers,
+    resources: savedResources ? JSON.parse(savedResources) : initialLibraryResources,
+    forensic: savedForensic ? JSON.parse(savedForensic) : initialForensicData,
+    institute: savedInstitute ? JSON.parse(savedInstitute) : initialInstituteData,
+    settings: savedSettings ? JSON.parse(savedSettings) : initialSiteSettings,
+    messages: savedMessages ? JSON.parse(savedMessages) : [],
+  };
+};
+
 export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
-  const [news, setNews] = useState<NewsItem[]>(initialNewsItems);
-  const [carousel, setCarousel] = useState<CarouselItem[]>(initialCarouselItems);
-  const [members, setMembers] = useState<CouncilMember[]>(initialCouncilMembers);
-  const [resources, setResources] = useState<LibraryResource[]>(initialLibraryResources);
-  const [forensic, setForensic] = useState<ForensicData>(initialForensicData);
-  const [institute, setInstitute] = useState<InstituteData>(initialInstituteData);
-  const [settings, setSettings] = useState<SiteSettings>(initialSiteSettings);
-  const [messages, setMessages] = useState<any[]>([]);
+  const [state, setState] = useState({
+    news: initialNewsItems,
+    carousel: initialCarouselItems,
+    members: initialCouncilMembers,
+    resources: initialLibraryResources,
+    forensic: initialForensicData,
+    institute: initialInstituteData,
+    settings: initialSiteSettings,
+    messages: [],
+  });
 
   useEffect(() => {
-    const loadFromStorage = () => {
-      const savedNews = localStorage.getItem('newsItems');
-      const savedCarousel = localStorage.getItem('carouselItems');
-      const savedMembers = localStorage.getItem('councilMembers');
-      const savedResources = localStorage.getItem('libraryResources');
-      const savedForensic = localStorage.getItem('forensicData');
-      const savedInstitute = localStorage.getItem('instituteData');
-      const savedSettings = localStorage.getItem('siteSettings');
-      const savedMessages = localStorage.getItem('contactMessages');
+    const init = async () => {
+      const data = await loadInitialData();
+      setState(data);
+    };
+    init();
 
-      if (savedNews) setNews(JSON.parse(savedNews));
-      if (savedCarousel) setCarousel(JSON.parse(savedCarousel));
-      if (savedMembers) setMembers(JSON.parse(savedMembers));
-      if (savedResources) setResources(JSON.parse(savedResources));
-      if (savedForensic) setForensic(JSON.parse(savedForensic));
-      if (savedInstitute) setInstitute(JSON.parse(savedInstitute));
-      if (savedSettings) setSettings(JSON.parse(savedSettings));
-      if (savedMessages) setMessages(JSON.parse(savedMessages));
+    const syncWithStorage = async () => {
+      const data = await loadInitialData();
+      setState(data);
     };
 
-    loadFromStorage();
-    window.addEventListener('storage', loadFromStorage);
-    return () => window.removeEventListener('storage', loadFromStorage);
+    window.addEventListener('storage', syncWithStorage);
+    return () => window.removeEventListener('storage', syncWithStorage);
   }, []);
 
   const updateNews = (items: NewsItem[]) => {
-    setNews(items);
+    setState(prev => ({ ...prev, news: items }));
     localStorage.setItem('newsItems', JSON.stringify(items));
   };
 
   const updateCarousel = (items: CarouselItem[]) => {
-    setCarousel(items);
+    setState(prev => ({ ...prev, carousel: items }));
     localStorage.setItem('carouselItems', JSON.stringify(items));
   };
 
   const updateMembers = (items: CouncilMember[]) => {
-    setMembers(items);
+    setState(prev => ({ ...prev, members: items }));
     localStorage.setItem('councilMembers', JSON.stringify(items));
   };
 
   const updateResources = (items: LibraryResource[]) => {
-    setResources(items);
+    setState(prev => ({ ...prev, resources: items }));
     localStorage.setItem('libraryResources', JSON.stringify(items));
   };
 
   const updateForensic = (data: ForensicData) => {
-    setForensic(data);
+    setState(prev => ({ ...prev, forensic: data }));
     localStorage.setItem('forensicData', JSON.stringify(data));
   };
 
   const updateInstitute = (data: InstituteData) => {
-    setInstitute(data);
+    setState(prev => ({ ...prev, institute: data }));
     localStorage.setItem('instituteData', JSON.stringify(data));
   };
 
   const updateSettings = (newSettings: SiteSettings) => {
-    setSettings(newSettings);
+    setState(prev => ({ ...prev, settings: newSettings }));
     localStorage.setItem('siteSettings', JSON.stringify(newSettings));
   };
 
   const updateMessages = (newMessages: any[]) => {
-    setMessages(newMessages);
+    setState(prev => ({ ...prev, messages: newMessages }));
     localStorage.setItem('contactMessages', JSON.stringify(newMessages));
+  };
+
+  const clearAllData = () => {
+    if (window.confirm('سيتم مسح كافة التعديلات والعودة للبيانات الاصلية، هل أنت متأكد؟')) {
+      localStorage.clear();
+      setState(loadInitialData());
+      window.location.reload();
+    }
   };
 
   return (
     <DataContext.Provider value={{
-      news, carousel, members, resources, forensic, institute, settings, messages,
-      updateNews, updateCarousel, updateMembers, updateResources, updateForensic, updateInstitute, updateSettings, updateMessages
+      ...state,
+      updateNews, updateCarousel, updateMembers, updateResources, updateForensic, updateInstitute, updateSettings, updateMessages,
+      clearAllData
     }}>
       {children}
     </DataContext.Provider>

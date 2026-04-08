@@ -5,10 +5,16 @@ import { useData } from '../../context/DataContext';
 
 const InstituteManager = () => {
   const { institute: data, updateInstitute } = useData();
+  const [localData, setLocalData] = useState(data);
   const [uploading, setUploading] = useState(false);
 
-  const saveToStorage = (newData: any) => {
-    updateInstitute(newData);
+  useEffect(() => {
+    setLocalData(data);
+  }, [data]);
+
+  const handleSave = () => {
+    updateInstitute(localData);
+    alert('تم حفظ كافة التعديلات بنجاح');
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -17,7 +23,7 @@ const InstituteManager = () => {
       setUploading(true);
       try {
         const base64 = await handleImageUpload(file);
-        saveToStorage({ ...data, image: base64 });
+        setLocalData({ ...localData, image: base64 });
       } catch (error) {
         console.error('Error uploading image:', error);
         alert('حدث خطأ أثناء رفع الصورة');
@@ -27,32 +33,32 @@ const InstituteManager = () => {
     }
   };
 
-  const addFeature = () => {
-    saveToStorage({ ...data, features: [...data.features, ''] });
+  const addItem = (field: 'features') => {
+    setLocalData({ ...localData, [field]: [...localData[field], ''] });
   };
 
-  const removeFeature = (index: number) => {
-    const newFeatures = data.features.filter((_, i) => i !== index);
-    saveToStorage({ ...data, features: newFeatures });
+  const removeItem = (field: 'features', index: number) => {
+    const newList = localData[field].filter((_, i) => i !== index);
+    setLocalData({ ...localData, [field]: newList });
   };
 
-  const updateFeature = (index: number, text: string) => {
-    const newFeatures = data.features.map((feat, i) => i === index ? text : feat);
-    saveToStorage({ ...data, features: newFeatures });
+  const updateItem = (field: 'features', index: number, text: string) => {
+    const newList = localData[field].map((item, i) => i === index ? text : item);
+    setLocalData({ ...localData, [field]: newList });
   };
 
   const addRequirement = () => {
-    saveToStorage({ ...data, requirements: [...data.requirements, ''] });
+    setLocalData({ ...localData, requirements: [...localData.requirements, ''] });
   };
 
   const removeRequirement = (index: number) => {
-    const newReqs = data.requirements.filter((_, i) => i !== index);
-    saveToStorage({ ...data, requirements: newReqs });
+    const newList = localData.requirements.filter((_, i) => i !== index);
+    setLocalData({ ...localData, requirements: newList });
   };
 
   const updateRequirement = (index: number, text: string) => {
-    const newReqs = data.requirements.map((req, i) => i === index ? text : req);
-    saveToStorage({ ...data, requirements: newReqs });
+    const newList = localData.requirements.map((item, i) => i === index ? text : item);
+    setLocalData({ ...localData, requirements: newList });
   };
 
   return (
@@ -61,13 +67,14 @@ const InstituteManager = () => {
         <div className="flex justify-between items-center mb-8">
           <div>
             <h1 className="text-3xl font-serif font-bold text-gray-800">إدارة معهد المحاماة</h1>
-            <p className="text-gray-500 mt-1">تحديث محتوى، مميزات، وشروط الالتحاق بمعهد المحاماة</p>
+            <p className="text-gray-500 mt-1">تحديث البرامج التدريبية ومتطلبات الالتحاق بالمعهد</p>
           </div>
           <button
-            onClick={() => saveToStorage(data)}
-            className="bg-green-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-green-700 transition-all shadow-md"
+            onClick={handleSave}
+            className="bg-primary text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-primary/90 transition-all shadow-md"
           >
-            <Save className="h-5 w-5" /> حفظ الكل
+            <Save className="h-5 w-5" />
+            حفظ الكل
           </button>
         </div>
 
@@ -82,16 +89,16 @@ const InstituteManager = () => {
                 <label className="block text-sm font-bold text-gray-700 mb-2">عنوان الصفحة</label>
                 <input
                   type="text"
-                  value={data.title}
-                  onChange={(e) => saveToStorage({ ...data, title: e.target.value })}
+                  value={localData.title}
+                  onChange={(e) => setLocalData({ ...localData, title: e.target.value })}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all"
                 />
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">الوصف التعريفي</label>
                 <textarea
-                  value={data.description}
-                  onChange={(e) => saveToStorage({ ...data, description: e.target.value })}
+                  value={localData.description}
+                  onChange={(e) => setLocalData({ ...localData, description: e.target.value })}
                   rows={4}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all"
                 />
@@ -102,8 +109,8 @@ const InstituteManager = () => {
                   <div className="relative group flex-grow">
                     <input
                       type="text"
-                      value={data.image}
-                      onChange={(e) => saveToStorage({ ...data, image: e.target.value })}
+                      value={localData.image}
+                      onChange={(e) => setLocalData({ ...localData, image: e.target.value })}
                       className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all"
                     />
                   </div>
@@ -113,33 +120,43 @@ const InstituteManager = () => {
                     <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
                   </label>
                 </div>
-                {data.image && (
+                {localData.image && (
                   <div className="mt-4 relative w-full h-48 rounded-lg overflow-hidden border border-gray-100">
-                    <img src={data.image} alt="Preview" className="w-full h-full object-cover" />
+                    <img src={localData.image} alt="Preview" className="w-full h-full object-cover" />
                   </div>
                 )}
               </div>
             </div>
           </div>
 
-          {/* Features */}
+          {/* Programs List */}
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold flex items-center gap-2">
-                <GraduationCap className="h-5 w-5 text-secondary" /> مميزات المعهد
+                <GraduationCap className="h-5 w-5 text-primary" /> البرامج التدريبية
               </h2>
-              <button onClick={addFeature} className="text-primary hover:bg-primary/10 p-2 rounded-lg"><Plus className="h-5 w-5" /></button>
+              <button
+                onClick={() => addItem('features')}
+                className="text-primary hover:bg-primary/10 p-2 rounded-lg transition-colors"
+              >
+                <Plus className="h-5 w-5" />
+              </button>
             </div>
             <div className="space-y-4">
-              {data.features.map((feat, idx) => (
+              {localData.features.map((feat, idx) => (
                 <div key={idx} className="flex gap-2">
                   <input
                     type="text"
                     value={feat}
-                    onChange={(e) => updateFeature(idx, e.target.value)}
+                    onChange={(e) => updateItem('features', idx, e.target.value)}
                     className="flex-grow bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all"
                   />
-                  <button onClick={() => removeFeature(idx)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"><Trash2 className="h-5 w-5" /></button>
+                  <button
+                    onClick={() => removeItem('features', idx)}
+                    className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
                 </div>
               ))}
             </div>
@@ -149,12 +166,17 @@ const InstituteManager = () => {
           <div className="bg-white p-8 rounded-2xl shadow-sm border border-gray-100 lg:col-span-2">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold flex items-center gap-2">
-                <ListChecks className="h-5 w-5 text-green-500" /> شروط الالتحاق
+                <ListChecks className="h-5 w-5 text-green-500" /> شروط ومتطلبات الالتحاق
               </h2>
-              <button onClick={addRequirement} className="text-primary hover:bg-primary/10 p-2 rounded-lg"><Plus className="h-5 w-5" /></button>
+              <button
+                onClick={addRequirement}
+                className="text-primary hover:bg-primary/10 p-2 rounded-lg transition-colors"
+              >
+                <Plus className="h-5 w-5" />
+              </button>
             </div>
-            <div className="space-y-4">
-              {data.requirements.map((req, idx) => (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {localData.requirements.map((req, idx) => (
                 <div key={idx} className="flex gap-2">
                   <input
                     type="text"
@@ -162,7 +184,12 @@ const InstituteManager = () => {
                     onChange={(e) => updateRequirement(idx, e.target.value)}
                     className="flex-grow bg-gray-50 border border-gray-200 rounded-xl px-4 py-2 focus:ring-2 focus:ring-primary outline-none transition-all"
                   />
-                  <button onClick={() => removeRequirement(idx)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"><Trash2 className="h-5 w-5" /></button>
+                  <button
+                    onClick={() => removeRequirement(idx)}
+                    className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-colors"
+                  >
+                    <Trash2 className="h-5 w-5" />
+                  </button>
                 </div>
               ))}
             </div>

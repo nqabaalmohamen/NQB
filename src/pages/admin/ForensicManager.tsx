@@ -5,10 +5,16 @@ import { useData } from '../../context/DataContext';
 
 const ForensicManager = () => {
   const { forensic: data, updateForensic } = useData();
+  const [localData, setLocalData] = useState(data);
   const [uploading, setUploading] = useState(false);
 
-  const saveToStorage = (newData: any) => {
-    updateForensic(newData);
+  useEffect(() => {
+    setLocalData(data);
+  }, [data]);
+
+  const handleSave = () => {
+    updateForensic(localData);
+    alert('تم حفظ كافة التعديلات بنجاح');
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -17,7 +23,7 @@ const ForensicManager = () => {
       setUploading(true);
       try {
         const base64 = await handleImageUpload(file);
-        saveToStorage({ ...data, image: base64 });
+        setLocalData({ ...localData, image: base64 });
       } catch (error) {
         console.error('Error uploading image:', error);
         alert('حدث خطأ أثناء رفع الصورة');
@@ -29,30 +35,30 @@ const ForensicManager = () => {
 
   const addService = () => {
     const newService = { id: Date.now(), title: '' };
-    saveToStorage({ ...data, services: [...data.services, newService] });
+    setLocalData({ ...localData, services: [...localData.services, newService] });
   };
 
   const removeService = (id: number) => {
-    saveToStorage({ ...data, services: data.services.filter(s => s.id !== id) });
+    setLocalData({ ...localData, services: localData.services.filter(s => s.id !== id) });
   };
 
   const updateService = (id: number, title: string) => {
-    const newServices = data.services.map(s => s.id === id ? { ...s, title } : s);
-    saveToStorage({ ...data, services: newServices });
+    const newServices = localData.services.map(s => s.id === id ? { ...s, title } : s);
+    setLocalData({ ...localData, services: newServices });
   };
 
   const addInstruction = () => {
-    saveToStorage({ ...data, instructions: [...data.instructions, ''] });
+    setLocalData({ ...localData, instructions: [...localData.instructions, ''] });
   };
 
   const removeInstruction = (index: number) => {
-    const newInstructions = data.instructions.filter((_, i) => i !== index);
-    saveToStorage({ ...data, instructions: newInstructions });
+    const newInstructions = localData.instructions.filter((_, i) => i !== index);
+    setLocalData({ ...localData, instructions: newInstructions });
   };
 
   const updateInstruction = (index: number, text: string) => {
-    const newInstructions = data.instructions.map((instr, i) => i === index ? text : instr);
-    saveToStorage({ ...data, instructions: newInstructions });
+    const newInstructions = localData.instructions.map((instr, i) => i === index ? text : instr);
+    setLocalData({ ...localData, instructions: newInstructions });
   };
 
   return (
@@ -64,7 +70,7 @@ const ForensicManager = () => {
             <p className="text-gray-500 mt-1">تحديث محتوى وتعليمات التنسيق مع الطب الشرعي</p>
           </div>
           <button
-            onClick={() => saveToStorage(data)}
+            onClick={handleSave}
             className="bg-green-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-green-700 transition-all shadow-md"
           >
             <Save className="h-5 w-5" />
@@ -83,16 +89,16 @@ const ForensicManager = () => {
                 <label className="block text-sm font-bold text-gray-700 mb-2">عنوان الصفحة</label>
                 <input
                   type="text"
-                  value={data.title}
-                  onChange={(e) => saveToStorage({ ...data, title: e.target.value })}
+                  value={localData.title}
+                  onChange={(e) => setLocalData({ ...localData, title: e.target.value })}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all"
                 />
               </div>
               <div>
                 <label className="block text-sm font-bold text-gray-700 mb-2">الوصف التعريفي</label>
                 <textarea
-                  value={data.description}
-                  onChange={(e) => saveToStorage({ ...data, description: e.target.value })}
+                  value={localData.description}
+                  onChange={(e) => setLocalData({ ...localData, description: e.target.value })}
                   rows={4}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all"
                 />
@@ -103,8 +109,8 @@ const ForensicManager = () => {
                   <div className="relative group flex-grow">
                     <input
                       type="text"
-                      value={data.image}
-                      onChange={(e) => saveToStorage({ ...data, image: e.target.value })}
+                      value={localData.image}
+                      onChange={(e) => setLocalData({ ...localData, image: e.target.value })}
                       className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all"
                     />
                   </div>
@@ -114,9 +120,9 @@ const ForensicManager = () => {
                     <input type="file" className="hidden" accept="image/*" onChange={handleFileChange} />
                   </label>
                 </div>
-                {data.image && (
+                {localData.image && (
                   <div className="mt-4 relative w-full h-48 rounded-lg overflow-hidden border border-gray-200">
-                    <img src={data.image} alt="Preview" className="w-full h-full object-cover" />
+                    <img src={localData.image} alt="Preview" className="w-full h-full object-cover" />
                   </div>
                 )}
               </div>
@@ -137,7 +143,7 @@ const ForensicManager = () => {
               </button>
             </div>
             <div className="space-y-4">
-              {data.services.map((service) => (
+              {localData.services.map((service) => (
                 <div key={service.id} className="flex gap-2">
                   <input
                     type="text"
@@ -170,7 +176,7 @@ const ForensicManager = () => {
               </button>
             </div>
             <div className="space-y-4">
-              {data.instructions.map((instr, idx) => (
+              {localData.instructions.map((instr, idx) => (
                 <div key={idx} className="flex gap-2">
                   <input
                     type="text"

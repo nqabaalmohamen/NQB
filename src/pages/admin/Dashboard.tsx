@@ -16,7 +16,11 @@ import {
   GraduationCap,
   ShieldCheck,
   Download,
-  AlertTriangle
+  AlertTriangle,
+  RefreshCw,
+  Trash2,
+  CloudUpload,
+  CheckCircle2
 } from 'lucide-react';
 
 import { useData } from '../../context/DataContext';
@@ -24,7 +28,9 @@ import { useData } from '../../context/DataContext';
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { news, carousel, members, resources, forensic, institute, settings, messages } = useData();
+  const { news, carousel, members, resources, forensic, institute, settings, messages, clearAllData } = useData();
+  const [publishing, setPublishing] = useState(false);
+  const [publishStatus, setPublishStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   
   const stats = [
     { title: 'إجمالي الأخبار', value: news.length.toString(), icon: Newspaper, color: 'bg-blue-500' },
@@ -32,6 +38,81 @@ const Dashboard = () => {
     { title: 'أعضاء المجلس', value: members.length.toString(), icon: Users, color: 'bg-purple-500' },
     { title: 'المصادر المكتبية', value: resources.length.toString(), icon: BookOpen, color: 'bg-orange-500' },
   ];
+
+  const handlePublish = async () => {
+    if (!settings.githubToken || !settings.githubRepo || !settings.githubOwner) {
+      alert('يرجى ضبط إعدادات GitHub في صفحة الإعدادات العامة أولاً لتتمكن من النشر');
+      navigate('/admin/settings');
+      return;
+    }
+
+    setPublishing(true);
+    setPublishStatus('loading');
+
+    try {
+      const dataToPublish = {
+        siteSettings: settings,
+        carouselItems: carousel,
+        newsItems: news,
+        councilMembers: members,
+        forensicData: forensic,
+        libraryResources: resources,
+        instituteData: institute,
+        contactMessages: messages
+      };
+
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(dataToPublish, null, 2))));
+      const path = 'src/data/data.json';
+      
+      // Get the SHA of the current file first
+      const getFileResponse = await fetch(
+        `https://api.github.com/repos/${settings.githubOwner}/${settings.githubRepo}/contents/${path}`,
+        {
+          headers: {
+            'Authorization': `token ${settings.githubToken}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        }
+      );
+
+      let sha = '';
+      if (getFileResponse.ok) {
+        const fileData = await getFileResponse.json();
+        sha = fileData.sha;
+      }
+
+      // Update the file
+      const updateResponse = await fetch(
+        `https://api.github.com/repos/${settings.githubOwner}/${settings.githubRepo}/contents/${path}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${settings.githubToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: `Update site data from admin dashboard ${new Date().toLocaleString()}`,
+            content: content,
+            sha: sha
+          })
+        }
+      );
+
+      if (updateResponse.ok) {
+        setPublishStatus('success');
+        alert('تم نشر التعديلات بنجاح! سيستغرق ظهورها للجميع بضع دقائق.');
+      } else {
+        throw new Error('فشل التحديث على GitHub');
+      }
+    } catch (error) {
+      console.error('Publish error:', error);
+      setPublishStatus('error');
+      alert('حدث خطأ أثناء النشر، تأكد من صحة الـ Token وصلاحياته.');
+    } finally {
+      setPublishing(false);
+      setTimeout(() => setPublishStatus('idle'), 5000);
+    }
+  };
 
   const handleExportData = () => {
     const data = {
@@ -62,53 +143,59 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex" dir="rtl">
+    <div className="flex min-h-screen bg-gray-50" dir="rtl">
       {/* Sidebar */}
-      <aside className="w-64 bg-primary text-white hidden md:flex flex-col shadow-2xl shrink-0">
-        <div className="p-6 border-b border-white/10">
-          <h2 className="text-xl font-serif font-bold">لوحة التحكم</h2>
-          <p className="text-white/60 text-xs mt-1">نقابة المحامين بالفيوم</p>
+      <aside className="w-72 bg-primary text-white hidden lg:flex flex-col sticky top-0 h-screen">
+        <div className="p-8 border-b border-white/10">
+          <div className="flex items-center gap-3">
+            <div className="bg-secondary p-2 rounded-lg">
+              <ShieldCheck className="h-6 w-6 text-primary" />
+            </div>
+            <span className="text-xl font-bold font-serif tracking-tight">لوحة التحكم</span>
+          </div>
         </div>
-
-        <nav className="flex-grow py-6 px-4 space-y-2">
+        
+        <nav className="flex-grow p-6 space-y-2">
           {[
-            { name: 'الرئيسية', icon: LayoutDashboard, active: true, path: '/admin/dashboard' },
-            { name: 'إدارة السلايدر', icon: ImageIcon, path: '/admin/carousel' },
-            { name: 'إدارة الأخبار', icon: Newspaper, path: '/admin/news' },
-            { name: 'إدارة المجلس', icon: Users, path: '/admin/council' },
-            { name: 'إدارة الطب الشرعي', icon: ShieldAlert, path: '/admin/forensic' },
-            { name: 'إدارة المكتبة', icon: BookOpen, path: '/admin/library' },
+            { name: 'الرئيسية', icon: LayoutDashboard, path: '/admin/dashboard' },
+            { name: 'السلايدر', icon: ImageIcon, path: '/admin/carousel' },
+            { name: 'الأخبار', icon: Newspaper, path: '/admin/news' },
+            { name: 'أعضاء المجلس', icon: Users, path: '/admin/council' },
+            { name: 'المكتبة', icon: BookOpen, path: '/admin/library' },
+            { name: 'الطب الشرعي', icon: ShieldAlert, path: '/admin/forensic' },
             { name: 'إدارة المعهد', icon: GraduationCap, path: '/admin/institute' },
             { name: 'رسائل التواصل', icon: MessageSquare, path: '/admin/messages' },
             { name: 'الإعدادات العامة', icon: Settings, path: '/admin/settings' },
           ].map((item) => (
             <Link
-              key={item.name}
+              key={item.path}
               to={item.path}
-              className={`w-full flex items-center gap-3 px-4 py-3.5 rounded-xl transition-all font-bold text-sm ${
-                location.pathname === item.path ? 'bg-secondary text-primary shadow-lg' : 'hover:bg-white/10 text-white/80'
+              className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${
+                location.pathname === item.path 
+                ? 'bg-secondary text-primary font-bold shadow-lg' 
+                : 'text-white/70 hover:bg-white/5 hover:text-white'
               }`}
             >
               <item.icon className="h-5 w-5" />
-              {item.name}
+              <span>{item.name}</span>
             </Link>
           ))}
         </nav>
 
-        <div className="p-4 space-y-2 border-t border-white/10">
-          <Link
-            to="/"
-            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-white/80 hover:bg-white/10 hover:text-white transition-all font-bold text-sm"
+        <div className="p-6 border-t border-white/10 space-y-4">
+          <button 
+            onClick={clearAllData}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-red-300 hover:bg-red-500/10 hover:text-red-400 transition-all border border-red-500/30"
           >
-            <Globe className="h-5 w-5" />
-            العودة للموقع
-          </Link>
-          <button
+            <Trash2 className="h-5 w-5" />
+            <span>مسح كافة التعديلات</span>
+          </button>
+          <button 
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl text-red-200 hover:bg-red-500/10 hover:text-red-400 transition-all font-bold text-sm"
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-white/70 hover:bg-white/5 hover:text-white transition-all"
           >
             <LogOut className="h-5 w-5" />
-            تسجيل الخروج
+            <span>تسجيل الخروج</span>
           </button>
         </div>
       </aside>
@@ -130,27 +217,66 @@ const Dashboard = () => {
           </div>
         </header>
 
-        {/* Export Data Banner */}
-        <div className="bg-gradient-to-r from-primary to-blue-900 rounded-2xl p-8 mb-10 text-white shadow-xl relative overflow-hidden">
-          <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
-            <div className="flex-grow">
-              <h2 className="text-2xl font-bold mb-2 flex items-center gap-3">
-                <AlertTriangle className="h-7 w-7 text-secondary" />
-                حفظ التعديلات بشكل دائم للجميع
-              </h2>
-              <p className="text-white/70 max-w-2xl">
-                تنبيه: التعديلات التي تقوم بها الآن تُحفظ في متصفحك فقط. لجعلها تظهر لكافة زوار الموقع، يجب عليك الضغط على زر التصدير وإرسال الملف الناتج للمطور لاعتماده في النسخة الرسمية.
-              </p>
+        {/* Export & Publish Banners */}
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6 mb-10">
+          {/* GitHub Publish Banner */}
+          <div className="bg-gradient-to-br from-green-600 to-green-800 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden group">
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <h2 className="text-2xl font-bold mb-3 flex items-center gap-3">
+                  <CloudUpload className="h-8 w-8 text-secondary animate-bounce" />
+                  نشر التحديثات للجمهور
+                </h2>
+                <p className="text-green-50/80 text-sm leading-relaxed mb-6">
+                  هذا الخيار سيقوم برفع كافة تعديلاتك (صور، أخبار، إعدادات) مباشرة إلى الموقع الرسمي ليراها كافة الزوار فوراً.
+                </p>
+              </div>
+              <button 
+                onClick={handlePublish}
+                disabled={publishing}
+                className={`w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all shadow-lg ${
+                  publishStatus === 'success' 
+                  ? 'bg-white text-green-600' 
+                  : 'bg-secondary text-primary hover:bg-white'
+                }`}
+              >
+                {publishing ? (
+                  <RefreshCw className="h-6 w-6 animate-spin" />
+                ) : publishStatus === 'success' ? (
+                  <CheckCircle2 className="h-6 w-6" />
+                ) : (
+                  <CloudUpload className="h-6 w-6" />
+                )}
+                <span>
+                  {publishing ? 'جاري النشر...' : publishStatus === 'success' ? 'تم النشر بنجاح' : 'انشر الموقع للجميع الآن'}
+                </span>
+              </button>
             </div>
-            <button 
-              onClick={handleExportData}
-              className="bg-secondary text-primary px-8 py-4 rounded-xl font-bold flex items-center gap-3 hover:bg-white transition-all shadow-lg whitespace-nowrap animate-pulse hover:animate-none"
-            >
-              <Download className="h-6 w-6" />
-              تصدير كافة البيانات (JSON)
-            </button>
+            <div className="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full -translate-x-20 -translate-y-20 group-hover:scale-110 transition-transform duration-700"></div>
           </div>
-          <div className="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full -translate-x-32 -translate-y-32"></div>
+
+          {/* Export Data Banner */}
+          <div className="bg-gradient-to-br from-primary to-blue-900 rounded-3xl p-8 text-white shadow-xl relative overflow-hidden group">
+            <div className="relative z-10 flex flex-col h-full justify-between">
+              <div>
+                <h2 className="text-2xl font-bold mb-3 flex items-center gap-3">
+                  <Download className="h-8 w-8 text-secondary" />
+                  نسخة احتياطية (JSON)
+                </h2>
+                <p className="text-white/70 text-sm leading-relaxed mb-6">
+                  يفضل دائماً تحميل نسخة احتياطية من بياناتك قبل النشر، أو لإرسالها للمطور في حال واجهت أي مشكلة تقنية.
+                </p>
+              </div>
+              <button 
+                onClick={handleExportData}
+                className="w-full bg-white/10 hover:bg-white/20 border border-white/20 py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all"
+              >
+                <Download className="h-6 w-6" />
+                تصدير كافة البيانات
+              </button>
+            </div>
+            <div className="absolute top-0 left-0 w-64 h-64 bg-white/5 rounded-full -translate-x-20 -translate-y-20 group-hover:scale-110 transition-transform duration-700"></div>
+          </div>
         </div>
 
         {/* Stats Grid */}
