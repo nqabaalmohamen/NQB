@@ -3,30 +3,10 @@ import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import { ShieldCheck, GraduationCap, BookOpen, Newspaper, Bell } from 'lucide-react';
 import ImageCarousel from '../components/ImageCarousel';
-import { initialNewsItems, NewsItem } from '../data/store';
+import { useData } from '../context/DataContext';
 
 const Home = () => {
-  const [news, setNews] = useState<NewsItem[]>([]);
-
-  useEffect(() => {
-    const loadNews = () => {
-      const saved = localStorage.getItem('newsItems');
-      if (saved) {
-        setNews(JSON.parse(saved));
-      } else {
-        setNews(initialNewsItems);
-      }
-    };
-
-    loadNews();
-    window.addEventListener('storage', loadNews);
-    window.addEventListener('newsUpdated', loadNews);
-
-    return () => {
-      window.removeEventListener('storage', loadNews);
-      window.removeEventListener('newsUpdated', loadNews);
-    };
-  }, []);
+  const { news } = useData();
 
   return (
     <div className="flex flex-col gap-16 pb-20">

@@ -1,29 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { GraduationCap, Calendar, Users, Award, BookOpen, ListChecks } from 'lucide-react';
-import { initialInstituteData, InstituteData } from '../data/store';
+import { useData } from '../context/DataContext';
 
 const Institute = () => {
-  const [data, setData] = useState<InstituteData>(initialInstituteData);
-
-  useEffect(() => {
-    const loadData = () => {
-      const saved = localStorage.getItem('instituteData');
-      if (saved) {
-        setData(JSON.parse(saved));
-      } else {
-        setData(initialInstituteData);
-      }
-    };
-
-    loadData();
-    window.addEventListener('storage', loadData);
-    window.addEventListener('instituteUpdated', loadData);
-
-    return () => {
-      window.removeEventListener('storage', loadData);
-      window.removeEventListener('instituteUpdated', loadData);
-    };
-  }, []);
+  const { institute: data } = useData();
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-16">

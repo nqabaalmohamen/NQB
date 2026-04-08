@@ -1,28 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { initialNewsItems, NewsItem } from '../../data/store';
 import { Plus, Trash2, Edit2, Save, X, Newspaper, Calendar, Image as ImageIcon, Upload } from 'lucide-react';
 import { handleImageUpload } from '../../lib/imageUtils';
+import { useData } from '../../context/DataContext';
+import { NewsItem } from '../../data/store';
 
 const NewsManager = () => {
-  const [items, setItems] = useState<NewsItem[]>([]);
+  const { news: items, updateNews } = useData();
   const [isEditing, setIsEditing] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<NewsItem | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  useEffect(() => {
-    const saved = localStorage.getItem('newsItems');
-    if (saved) {
-      setItems(JSON.parse(saved));
-    } else {
-      setItems(initialNewsItems);
-    }
-  }, []);
-
   const saveToStorage = (newItems: NewsItem[]) => {
-    setItems(newItems);
-    localStorage.setItem('newsItems', JSON.stringify(newItems));
-    window.dispatchEvent(new Event('newsUpdated'));
+    updateNews(newItems);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,29 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { Facebook, Twitter, Instagram, Mail, Phone, MapPin, Scale } from 'lucide-react';
-import { initialSiteSettings, SiteSettings } from '../data/store';
+import { useData } from '../context/DataContext';
 
 const Footer = () => {
-  const [settings, setSettings] = useState<SiteSettings>(initialSiteSettings);
-
-  useEffect(() => {
-    const loadSettings = () => {
-      const saved = localStorage.getItem('siteSettings');
-      if (saved) {
-        setSettings(JSON.parse(saved));
-      } else {
-        setSettings(initialSiteSettings);
-      }
-    };
-
-    loadSettings();
-    window.addEventListener('storage', loadSettings);
-    window.addEventListener('siteSettingsUpdated', loadSettings);
-
-    return () => {
-      window.removeEventListener('storage', loadSettings);
-      window.removeEventListener('siteSettingsUpdated', loadSettings);
-    };
-  }, []);
+  const { settings } = useData();
 
   const siteNameParts = settings.siteName.split(' ');
   const mainName = siteNameParts.slice(0, 2).join(' ');

@@ -1,30 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Users, Award, Briefcase } from 'lucide-react';
-import { initialCouncilMembers, CouncilMember } from '../data/store';
+import { useData } from '../context/DataContext';
 
 const Council = () => {
-  const [members, setMembers] = useState<CouncilMember[]>([]);
-
-  useEffect(() => {
-    const loadMembers = () => {
-      const saved = localStorage.getItem('councilMembers');
-      if (saved) {
-        setMembers(JSON.parse(saved));
-      } else {
-        setMembers(initialCouncilMembers);
-      }
-    };
-
-    loadMembers();
-    window.addEventListener('storage', loadMembers);
-    window.addEventListener('councilUpdated', loadMembers);
-
-    return () => {
-      window.removeEventListener('storage', loadMembers);
-      window.removeEventListener('councilUpdated', loadMembers);
-    };
-  }, []);
+  const { members } = useData();
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-16">

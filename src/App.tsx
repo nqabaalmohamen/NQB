@@ -25,6 +25,7 @@ import InstituteManager from './pages/admin/InstituteManager';
 import SettingsManager from './pages/admin/SettingsManager';
 import MessagesManager from './pages/admin/MessagesManager';
 import ProtectedRoute from './components/admin/ProtectedRoute';
+import { DataProvider } from './context/DataContext';
 
 const AppContent = () => {
   const [loading, setLoading] = useState(false);
@@ -74,7 +75,9 @@ const AppContent = () => {
 export default function App() {
   return (
     <Router basename="/NQB">
-      <AppContent />
+      <DataProvider>
+        <AppContent />
+      </DataProvider>
     </Router>
   );
 }

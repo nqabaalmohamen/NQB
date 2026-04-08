@@ -1,21 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { Save, Globe, Mail, Phone, MapPin, ShieldCheck } from 'lucide-react';
-import { initialSiteSettings, SiteSettings } from '../../data/store';
+import { useData } from '../../context/DataContext';
 
 const SettingsManager = () => {
-  const [settings, setSettings] = useState<SiteSettings>(initialSiteSettings);
+  const { settings, updateSettings } = useData();
+  const [localSettings, setLocalSettings] = useState(settings);
 
   useEffect(() => {
-    const saved = localStorage.getItem('siteSettings');
-    if (saved) {
-      setSettings(JSON.parse(saved));
-    }
-  }, []);
+    setLocalSettings(settings);
+  }, [settings]);
 
   const handleSave = () => {
-    localStorage.setItem('siteSettings', JSON.stringify(settings));
-    // Dispatch custom event to notify other components in the same tab
-    window.dispatchEvent(new Event('siteSettingsUpdated'));
+    updateSettings(localSettings);
     alert('تم حفظ الإعدادات بنجاح');
   };
 
@@ -44,8 +40,8 @@ const SettingsManager = () => {
                 </label>
                 <input
                   type="text"
-                  value={settings.siteName}
-                  onChange={(e) => setSettings({ ...settings, siteName: e.target.value })}
+                  value={localSettings.siteName}
+                  onChange={(e) => setLocalSettings({ ...localSettings, siteName: e.target.value })}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all"
                 />
               </div>
@@ -55,8 +51,8 @@ const SettingsManager = () => {
                 </label>
                 <input
                   type="email"
-                  value={settings.contactEmail}
-                  onChange={(e) => setSettings({ ...settings, contactEmail: e.target.value })}
+                  value={localSettings.contactEmail}
+                  onChange={(e) => setLocalSettings({ ...localSettings, contactEmail: e.target.value })}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all text-left"
                 />
               </div>
@@ -66,8 +62,8 @@ const SettingsManager = () => {
                 </label>
                 <input
                   type="text"
-                  value={settings.contactPhone}
-                  onChange={(e) => setSettings({ ...settings, contactPhone: e.target.value })}
+                  value={localSettings.contactPhone}
+                  onChange={(e) => setLocalSettings({ ...localSettings, contactPhone: e.target.value })}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all text-left"
                 />
               </div>
@@ -77,8 +73,8 @@ const SettingsManager = () => {
                 </label>
                 <input
                   type="text"
-                  value={settings.address}
-                  onChange={(e) => setSettings({ ...settings, address: e.target.value })}
+                  value={localSettings.address}
+                  onChange={(e) => setLocalSettings({ ...localSettings, address: e.target.value })}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all"
                 />
               </div>
@@ -89,8 +85,8 @@ const SettingsManager = () => {
                 <ShieldCheck className="h-4 w-4 text-primary" /> نص التذييل (Footer)
               </label>
               <textarea
-                value={settings.footerText}
-                onChange={(e) => setSettings({ ...settings, footerText: e.target.value })}
+                value={localSettings.footerText}
+                onChange={(e) => setLocalSettings({ ...localSettings, footerText: e.target.value })}
                 rows={3}
                 className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all"
               />

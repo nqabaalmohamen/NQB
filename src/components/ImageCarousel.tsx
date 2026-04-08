@@ -2,31 +2,11 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion'; // Using framer-motion for animations
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { initialCarouselItems, CarouselItem } from '../data/store';
+import { useData } from '../context/DataContext';
 
 const ImageCarousel: React.FC = () => {
-  const [carouselItems, setCarouselItems] = useState<CarouselItem[]>([]);
+  const { carousel: carouselItems } = useData();
   const [currentIndex, setCurrentIndex] = useState(0);
-
-  useEffect(() => {
-    const loadItems = () => {
-      const savedItems = localStorage.getItem('carouselItems');
-      if (savedItems) {
-        setCarouselItems(JSON.parse(savedItems));
-      } else {
-        setCarouselItems(initialCarouselItems);
-      }
-    };
-
-    loadItems();
-    window.addEventListener('storage', loadItems);
-    window.addEventListener('carouselUpdated', loadItems);
-
-    return () => {
-      window.removeEventListener('storage', loadItems);
-      window.removeEventListener('carouselUpdated', loadItems);
-    };
-  }, []);
 
   const goToNext = () => {
     if (carouselItems.length === 0) return;

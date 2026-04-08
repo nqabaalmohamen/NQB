@@ -1,29 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, FileText, AlertCircle, CheckCircle } from 'lucide-react';
-import { initialForensicData, ForensicData } from '../data/store';
+import { useData } from '../context/DataContext';
 
 const Forensic = () => {
-  const [data, setData] = useState<ForensicData>(initialForensicData);
-
-  useEffect(() => {
-    const loadData = () => {
-      const saved = localStorage.getItem('forensicData');
-      if (saved) {
-        setData(JSON.parse(saved));
-      } else {
-        setData(initialForensicData);
-      }
-    };
-
-    loadData();
-    window.addEventListener('storage', loadData);
-    window.addEventListener('forensicUpdated', loadData);
-
-    return () => {
-      window.removeEventListener('storage', loadData);
-      window.removeEventListener('forensicUpdated', loadData);
-    };
-  }, []);
+  const { forensic: data } = useData();
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-16">

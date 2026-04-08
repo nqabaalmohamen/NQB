@@ -1,28 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { initialCouncilMembers, CouncilMember } from '../../data/store';
 import { Plus, Trash2, Edit2, Save, X, Award, Briefcase, User, Upload } from 'lucide-react';
 import { handleImageUpload } from '../../lib/imageUtils';
+import { useData } from '../../context/DataContext';
+import { CouncilMember } from '../../data/store';
 
 const CouncilManager = () => {
-  const [items, setItems] = useState<CouncilMember[]>([]);
+  const { members: items, updateMembers } = useData();
   const [isEditing, setIsEditing] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<CouncilMember | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  useEffect(() => {
-    const saved = localStorage.getItem('councilMembers');
-    if (saved) {
-      setItems(JSON.parse(saved));
-    } else {
-      setItems(initialCouncilMembers);
-    }
-  }, []);
-
   const saveToStorage = (newItems: CouncilMember[]) => {
-    setItems(newItems);
-    localStorage.setItem('councilMembers', JSON.stringify(newItems));
-    window.dispatchEvent(new Event('councilUpdated'));
+    updateMembers(newItems);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronDown, Menu, X, Scale, BookOpen, Users, Phone, Home, Search } from 'lucide-react';
 import { cn } from '@/src/lib/utils';
-import { initialSiteSettings, SiteSettings } from '../data/store';
+import { useData } from '../context/DataContext';
 
 const Navbar = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -10,32 +11,9 @@ const Navbar = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchVisible, setIsSearchVisible] = useState(false);
   const [suggestions, setSuggestions] = useState<string[]>([]);
-  const [settings, setSettings] = useState<SiteSettings>(initialSiteSettings);
+  const { settings } = useData();
   const navigate = useNavigate();
   const location = useLocation();
-
-  useEffect(() => {
-    const loadSettings = () => {
-      const saved = localStorage.getItem('siteSettings');
-      if (saved) {
-        setSettings(JSON.parse(saved));
-      } else {
-        setSettings(initialSiteSettings);
-      }
-    };
-
-    loadSettings();
-
-    // Listen for storage changes (other tabs)
-    window.addEventListener('storage', loadSettings);
-    // Listen for custom event (same tab)
-    window.addEventListener('siteSettingsUpdated', loadSettings);
-
-    return () => {
-      window.removeEventListener('storage', loadSettings);
-      window.removeEventListener('siteSettingsUpdated', loadSettings);
-    };
-  }, []);
 
   const siteNameParts = settings.siteName.split(' ');
   const mainName = siteNameParts.slice(0, 2).join(' ');

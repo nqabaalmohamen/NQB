@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, Download, FileText, Scale, Filter, Eye, X, Book } from 'lucide-react';
-import { initialLibraryResources, LibraryResource } from '../data/store';
+import { useData } from '../context/DataContext';
 
 // Helper to normalize Arabic text for better searching
 const normalizeArabic = (text: string) => {
@@ -15,32 +15,12 @@ const normalizeArabic = (text: string) => {
 };
 
 const Library = () => {
-  const [resources, setResources] = useState<LibraryResource[]>([]);
+  const { resources } = useData();
   const [searchParams, setSearchParams] = useSearchParams();
   const [searchTerm, setSearchTerm] = useState(searchParams.get('q') || '');
   const [activeCategory, setActiveCategory] = useState('الكل');
-  const [readingDoc, setReadingDoc] = useState<LibraryResource | null>(null);
+  const [readingDoc, setReadingDoc] = useState<any>(null);
   const [downloading, setDownloading] = useState<number | null>(null);
-
-  useEffect(() => {
-    const loadResources = () => {
-      const saved = localStorage.getItem('libraryResources');
-      if (saved) {
-        setResources(JSON.parse(saved));
-      } else {
-        setResources(initialLibraryResources);
-      }
-    };
-
-    loadResources();
-    window.addEventListener('storage', loadResources);
-    window.addEventListener('libraryUpdated', loadResources);
-
-    return () => {
-      window.removeEventListener('storage', loadResources);
-      window.removeEventListener('libraryUpdated', loadResources);
-    };
-  }, []);
 
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);

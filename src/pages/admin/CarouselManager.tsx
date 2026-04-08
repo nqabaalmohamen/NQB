@@ -1,28 +1,18 @@
 import React, { useState, useEffect } from 'react';
-import { initialCarouselItems, CarouselItem } from '../../data/store';
 import { Plus, Trash2, Edit2, Save, X, Image as ImageIcon, Upload } from 'lucide-react';
 import { handleImageUpload } from '../../lib/imageUtils';
+import { useData } from '../../context/DataContext';
+import { CarouselItem } from '../../data/store';
 
 const CarouselManager = () => {
-  const [items, setItems] = useState<CarouselItem[]>([]);
+  const { carousel: items, updateCarousel } = useData();
   const [isEditing, setIsEditing] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<CarouselItem | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [uploading, setUploading] = useState(false);
 
-  useEffect(() => {
-    const saved = localStorage.getItem('carouselItems');
-    if (saved) {
-      setItems(JSON.parse(saved));
-    } else {
-      setItems(initialCarouselItems);
-    }
-  }, []);
-
   const saveToStorage = (newItems: CarouselItem[]) => {
-    setItems(newItems);
-    localStorage.setItem('carouselItems', JSON.stringify(newItems));
-    window.dispatchEvent(new Event('carouselUpdated'));
+    updateCarousel(newItems);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

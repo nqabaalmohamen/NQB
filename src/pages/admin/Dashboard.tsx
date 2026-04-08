@@ -15,68 +15,34 @@ import {
   BookOpen,
   GraduationCap,
   ShieldCheck,
-  Download
+  Download,
+  AlertTriangle
 } from 'lucide-react';
 
-import { 
-  initialNewsItems, 
-  initialCarouselItems, 
-  initialCouncilMembers, 
-  initialLibraryResources,
-  initialForensicData,
-  initialInstituteData,
-  initialSiteSettings
-} from '../../data/store';
-
-import SettingsManager from './SettingsManager';
+import { useData } from '../../context/DataContext';
 
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const [stats, setStats] = useState([
-    { title: 'إجمالي الأخبار', value: '0', icon: Newspaper, color: 'bg-blue-500' },
-    { title: 'صور السلايدر', value: '0', icon: ImageIcon, color: 'bg-green-500' },
-    { title: 'أعضاء المجلس', value: '0', icon: Users, color: 'bg-purple-500' },
-    { title: 'المصادر المكتبية', value: '0', icon: BookOpen, color: 'bg-orange-500' },
-  ]);
-
-  useEffect(() => {
-    const updateStats = () => {
-      const news = JSON.parse(localStorage.getItem('newsItems') || JSON.stringify(initialNewsItems));
-      const carousel = JSON.parse(localStorage.getItem('carouselItems') || JSON.stringify(initialCarouselItems));
-      const council = JSON.parse(localStorage.getItem('councilMembers') || JSON.stringify(initialCouncilMembers));
-      const library = JSON.parse(localStorage.getItem('libraryResources') || JSON.stringify(initialLibraryResources));
-
-      setStats([
-        { title: 'إجمالي الأخبار', value: news.length.toString(), icon: Newspaper, color: 'bg-blue-500' },
-        { title: 'صور السلايدر', value: carousel.length.toString(), icon: ImageIcon, color: 'bg-green-500' },
-        { title: 'أعضاء المجلس', value: council.length.toString(), icon: Users, color: 'bg-purple-500' },
-        { title: 'المصادر المكتبية', value: library.length.toString(), icon: BookOpen, color: 'bg-orange-500' },
-      ]);
-    };
-
-    updateStats();
-    
-    const events = ['newsUpdated', 'carouselUpdated', 'councilUpdated', 'libraryUpdated'];
-    events.forEach(event => window.addEventListener(event, updateStats));
-    window.addEventListener('storage', updateStats);
-
-    return () => {
-      events.forEach(event => window.removeEventListener(event, updateStats));
-      window.removeEventListener('storage', updateStats);
-    };
-  }, []);
+  const { news, carousel, members, resources, forensic, institute, settings, messages } = useData();
+  
+  const stats = [
+    { title: 'إجمالي الأخبار', value: news.length.toString(), icon: Newspaper, color: 'bg-blue-500' },
+    { title: 'صور السلايدر', value: carousel.length.toString(), icon: ImageIcon, color: 'bg-green-500' },
+    { title: 'أعضاء المجلس', value: members.length.toString(), icon: Users, color: 'bg-purple-500' },
+    { title: 'المصادر المكتبية', value: resources.length.toString(), icon: BookOpen, color: 'bg-orange-500' },
+  ];
 
   const handleExportData = () => {
     const data = {
-      newsItems: JSON.parse(localStorage.getItem('newsItems') || JSON.stringify(initialNewsItems)),
-      carouselItems: JSON.parse(localStorage.getItem('carouselItems') || JSON.stringify(initialCarouselItems)),
-      councilMembers: JSON.parse(localStorage.getItem('councilMembers') || JSON.stringify(initialCouncilMembers)),
-      libraryResources: JSON.parse(localStorage.getItem('libraryResources') || JSON.stringify(initialLibraryResources)),
-      forensicData: JSON.parse(localStorage.getItem('forensicData') || JSON.stringify(initialForensicData)),
-      instituteData: JSON.parse(localStorage.getItem('instituteData') || JSON.stringify(initialInstituteData)),
-      siteSettings: JSON.parse(localStorage.getItem('siteSettings') || JSON.stringify(initialSiteSettings)),
-      contactMessages: JSON.parse(localStorage.getItem('contactMessages') || '[]'),
+      newsItems: news,
+      carouselItems: carousel,
+      councilMembers: members,
+      libraryResources: resources,
+      forensicData: forensic,
+      instituteData: institute,
+      siteSettings: settings,
+      contactMessages: messages,
     };
 
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
@@ -167,13 +133,18 @@ const Dashboard = () => {
         {/* Export Data Banner */}
         <div className="bg-gradient-to-r from-primary to-blue-900 rounded-2xl p-8 mb-10 text-white shadow-xl relative overflow-hidden">
           <div className="relative z-10 flex flex-col md:flex-row justify-between items-center gap-6">
-            <div>
-              <h2 className="text-2xl font-bold mb-2">حفظ التعديلات بشكل دائم</h2>
-              <p className="text-white/70">لضمان بقاء التعديلات التي قمت بها في الموقع للجميع، قم بتصدير البيانات وإرسالها للمطور.</p>
+            <div className="flex-grow">
+              <h2 className="text-2xl font-bold mb-2 flex items-center gap-3">
+                <AlertTriangle className="h-7 w-7 text-secondary" />
+                حفظ التعديلات بشكل دائم للجميع
+              </h2>
+              <p className="text-white/70 max-w-2xl">
+                تنبيه: التعديلات التي تقوم بها الآن تُحفظ في متصفحك فقط. لجعلها تظهر لكافة زوار الموقع، يجب عليك الضغط على زر التصدير وإرسال الملف الناتج للمطور لاعتماده في النسخة الرسمية.
+              </p>
             </div>
             <button 
               onClick={handleExportData}
-              className="bg-secondary text-primary px-8 py-4 rounded-xl font-bold flex items-center gap-3 hover:bg-white transition-all shadow-lg whitespace-nowrap"
+              className="bg-secondary text-primary px-8 py-4 rounded-xl font-bold flex items-center gap-3 hover:bg-white transition-all shadow-lg whitespace-nowrap animate-pulse hover:animate-none"
             >
               <Download className="h-6 w-6" />
               تصدير كافة البيانات (JSON)

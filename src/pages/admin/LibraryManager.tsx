@@ -1,26 +1,17 @@
 import React, { useState, useEffect } from 'react';
-import { initialLibraryResources, LibraryResource } from '../../data/store';
-import { Plus, Trash2, Edit2, Save, X, Book, FileText, Search } from 'lucide-react';
+import { Plus, Trash2, Edit2, Save, X, Book, FileText, Search, Filter } from 'lucide-react';
+import { useData } from '../../context/DataContext';
+import { LibraryResource } from '../../data/store';
 
 const LibraryManager = () => {
-  const [items, setItems] = useState<LibraryResource[]>([]);
+  const { resources: items, updateResources } = useData();
   const [isEditing, setIsEditing] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<LibraryResource | null>(null);
   const [isAdding, setIsAdding] = useState(false);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('libraryResources');
-    if (saved) {
-      setItems(JSON.parse(saved));
-    } else {
-      setItems(initialLibraryResources);
-    }
-  }, []);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const saveToStorage = (newItems: LibraryResource[]) => {
-    setItems(newItems);
-    localStorage.setItem('libraryResources', JSON.stringify(newItems));
-    window.dispatchEvent(new Event('libraryUpdated'));
+    updateResources(newItems);
   };
 
   const handleDelete = (id: number) => {

@@ -1,40 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Trash2, Check, Clock, User, FileText, MessageSquare } from 'lucide-react';
-
-interface Message {
-  id: number;
-  name: string;
-  idNumber: string;
-  email: string;
-  subject: string;
-  message: string;
-  date: string;
-  read: boolean;
-}
+import { useData } from '../../context/DataContext';
 
 const MessagesManager = () => {
-  const [messages, setMessages] = useState<Message[]>([]);
-
-  useEffect(() => {
-    const saved = localStorage.getItem('contactMessages');
-    if (saved) {
-      setMessages(JSON.parse(saved));
-    }
-  }, []);
+  const { messages, updateMessages } = useData();
 
   const toggleRead = (id: number) => {
     const newMessages = messages.map(msg => 
       msg.id === id ? { ...msg, read: !msg.read } : msg
     );
-    setMessages(newMessages);
-    localStorage.setItem('contactMessages', JSON.stringify(newMessages));
+    updateMessages(newMessages);
   };
 
   const deleteMessage = (id: number) => {
     if (window.confirm('هل أنت متأكد من حذف هذه الرسالة؟')) {
       const newMessages = messages.filter(msg => msg.id !== id);
-      setMessages(newMessages);
-      localStorage.setItem('contactMessages', JSON.stringify(newMessages));
+      updateMessages(newMessages);
     }
   };
 

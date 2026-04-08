@@ -1,23 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { initialInstituteData, InstituteData } from '../../data/store';
 import { Save, Image as ImageIcon, GraduationCap, Plus, Trash2, CheckCircle, ListChecks, Upload } from 'lucide-react';
 import { handleImageUpload } from '../../lib/imageUtils';
+import { useData } from '../../context/DataContext';
 
 const InstituteManager = () => {
-  const [data, setData] = useState<InstituteData>(initialInstituteData);
+  const { institute: data, updateInstitute } = useData();
   const [uploading, setUploading] = useState(false);
 
-  useEffect(() => {
-    const saved = localStorage.getItem('instituteData');
-    if (saved) {
-      setData(JSON.parse(saved));
-    }
-  }, []);
-
-  const saveToStorage = (newData: InstituteData) => {
-    setData(newData);
-    localStorage.setItem('instituteData', JSON.stringify(newData));
-    window.dispatchEvent(new Event('instituteUpdated'));
+  const saveToStorage = (newData: any) => {
+    updateInstitute(newData);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {

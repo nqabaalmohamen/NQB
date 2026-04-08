@@ -1,23 +1,14 @@
 import React, { useState, useEffect } from 'react';
-import { initialForensicData, ForensicData } from '../../data/store';
 import { Save, Image as ImageIcon, CheckCircle, Plus, Trash2, AlertCircle, Upload } from 'lucide-react';
 import { handleImageUpload } from '../../lib/imageUtils';
+import { useData } from '../../context/DataContext';
 
 const ForensicManager = () => {
-  const [data, setData] = useState<ForensicData>(initialForensicData);
+  const { forensic: data, updateForensic } = useData();
   const [uploading, setUploading] = useState(false);
 
-  useEffect(() => {
-    const saved = localStorage.getItem('forensicData');
-    if (saved) {
-      setData(JSON.parse(saved));
-    }
-  }, []);
-
-  const saveToStorage = (newData: ForensicData) => {
-    setData(newData);
-    localStorage.setItem('forensicData', JSON.stringify(newData));
-    window.dispatchEvent(new Event('forensicUpdated'));
+  const saveToStorage = (newData: any) => {
+    updateForensic(newData);
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
