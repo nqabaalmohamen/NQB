@@ -7,7 +7,10 @@ const Council = () => {
   const { members } = useData();
 
   // تصنيف الأعضاء بناءً على المنصب مع تحسين الفلاتر لتكون أكثر مرونة
-  const chairman = members.filter(m => m.role.includes('نقيب') && !m.role.includes('وكيل') && !m.role.includes('أمين') && !m.role.includes('امين'));
+  // التأكد من أن حازم طه يتم التعرف عليه كنقيب دائماً
+  const chairman = members.filter(m => 
+    (m.name.includes('حازم طه') || (m.role.includes('نقيب') && !m.role.includes('وكيل') && !m.role.includes('أمين') && !m.role.includes('امين')))
+  );
   const viceChairmen = members.filter(m => m.role.includes('وكيل'));
   const secretaryGeneral = members.filter(m => 
     m.role.includes('أمين عام') || 
