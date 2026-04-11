@@ -102,12 +102,26 @@ const Dashboard = () => {
         setPublishStatus('success');
         alert('تم نشر التعديلات بنجاح! سيستغرق ظهورها للجميع بضع دقائق.');
       } else {
-        throw new Error('فشل التحديث على GitHub');
+        const errorData = await updateResponse.json();
+        console.error('GitHub API Error:', errorData);
+        throw new Error(`GitHub API Error: ${updateResponse.status} - ${errorData.message}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Publish error:', error);
       setPublishStatus('error');
-      alert('حدث خطأ أثناء النشر، تأكد من صحة الـ Token وصلاحياته.');
+      
+      let message = 'حدث خطأ أثناء النشر.';
+      if (error.message.includes('401')) {
+        message = 'خطأ في الـ Token: الرمز غير صالح أو انتهت صلاحيته.';
+      } else if (error.message.includes('404')) {
+        message = 'خطأ في المستودع: تأكد من صحة اسم المستخدم واسم المستودع.';
+      } else if (error.message.includes('403')) {
+        message = 'خطأ في الصلاحيات: الـ Token لا يملك صلاحية الرفع (repo scope).';
+      } else if (error.message.includes('422')) {
+        message = 'خطأ في البيانات: غالباً هناك مشكلة في الـ SHA أو مسار الملف.';
+      }
+      
+      alert(`${message}\n\nالتفاصيل: ${error.message}`);
     } finally {
       setPublishing(false);
       setTimeout(() => setPublishStatus('idle'), 5000);

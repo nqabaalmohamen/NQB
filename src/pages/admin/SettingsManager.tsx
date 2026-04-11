@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Globe, Mail, Phone, MapPin, ShieldCheck, Github, Lock, Database } from 'lucide-react';
+import { Save, Globe, Mail, Phone, MapPin, ShieldCheck, Github, Lock, Database, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 
 const SettingsManager = () => {
   const { settings, updateSettings } = useData();
   const [localSettings, setLocalSettings] = useState(settings);
+  const [testing, setTesting] = useState(false);
+  const [testStatus, setTestStatus] = useState<'idle' | 'success' | 'error'>('idle');
 
   useEffect(() => {
     setLocalSettings(settings);
@@ -13,6 +15,41 @@ const SettingsManager = () => {
   const handleSave = () => {
     updateSettings(localSettings);
     alert('تم حفظ الإعدادات بنجاح');
+  };
+
+  const testConnection = async () => {
+    if (!localSettings.githubToken || !localSettings.githubRepo || !localSettings.githubOwner) {
+      alert('يرجى ملء كافة حقول GitHub أولاً');
+      return;
+    }
+
+    setTesting(true);
+    setTestStatus('idle');
+
+    try {
+      const response = await fetch(
+        `https://api.github.com/repos/${localSettings.githubOwner}/${localSettings.githubRepo}`,
+        {
+          headers: {
+            'Authorization': `token ${localSettings.githubToken}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        }
+      );
+
+      if (response.ok) {
+        setTestStatus('success');
+        alert('تم الاتصال بنجاح! الـ Token والمستودع صحيحان.');
+      } else {
+        const err = await response.json();
+        throw new Error(err.message);
+      }
+    } catch (error: any) {
+      setTestStatus('error');
+      alert(`فشل الاتصال: ${error.message}`);
+    } finally {
+      setTesting(false);
+    }
   };
 
   return (
@@ -148,9 +185,64 @@ const SettingsManager = () => {
                   />
                 </div>
               </div>
-              <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-                <p className="text-xs text-blue-700 leading-relaxed">
-                  <strong>ملاحظة:</strong> الـ Token يُحفظ في متصفحك فقط لأغراض الأمان. يمكنك الحصول عليه من إعدادات حسابك على GitHub (Developer Settings {'>'} Personal Access Tokens).
+              
+              <div className="flex justify-start">
+                <button
+                  onClick={testConnection}
+                  disabled={testing}
+                  className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold transition-all ${
+                    testStatus === 'success' 
+                    ? 'bg-green-50 text-green-600 border border-green-200' 
+                    : testStatus === 'error'
+                    ? 'bg-red-50 text-red-600 border border-red-200'
+                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+                >
+                  {testing ? <RefreshCw className="h-5 w-5 animate-spin" /> : 
+                   testStatus === 'success' ? <CheckCircle2 className="h-5 w-5" /> :
+                   testStatus === 'error' ? <XCircle className="h-5 w-5" /> :
+                   <RefreshCw className="h-5 w-5" />}
+                  {testing ? 'جاري التحقق...' : 
+                   testStatus === 'success' ? 'الاتصال يعمل' :
+                   testStatus === 'error' ? 'فشل الاتصال - أعد المحاولة' :
+                   'اختبار صحة الاتصال بـ GitHub'}
+                </button>
+              </div>
+
+              <div className="bg-blue-50 p-6 rounded-2xl border border-blue-100 space-y-4">
+                <div className="flex items-start gap-3">
+                  <div className="bg-blue-500/10 p-2 rounded-lg text-blue-600">
+                    <Database className="h-5 w-5" />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-blue-900 text-sm">كيفية الحصول على GitHub Token؟</h4>
+                    <p className="text-xs text-blue-700 leading-relaxed mt-1">
+                      الـ Token هو بمثابة كلمة مرور تسمح للوحة التحكم بتحديث الموقع للجميع. اتبع الخطوات التالية:
+                    </p>
+                  </div>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  <a 
+                    href="https://github.com/settings/tokens/new?scopes=repo&description=NQB-Admin-Panel" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 bg-white border border-blue-200 text-blue-700 py-3 rounded-xl text-xs font-bold hover:bg-blue-100 transition-all shadow-sm"
+                  >
+                    <Lock className="h-4 w-4" />
+                    اضغط هنا لإنشاء Token جديد (سريع)
+                  </a>
+                  <a 
+                    href="https://github.com/settings/tokens" 
+                    target="_blank" 
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-2 bg-white border border-blue-200 text-blue-700 py-3 rounded-xl text-xs font-bold hover:bg-blue-100 transition-all shadow-sm"
+                  >
+                    <Github className="h-4 w-4" />
+                    عرض التوكنات الحالية
+                  </a>
+                </div>
+                <p className="text-[10px] text-blue-500 italic">
+                  * ملاحظة: تأكد من تفعيل صلاحية (repo) عند إنشاء التوكن، وقم بنسخه فوراً لأنه لن يظهر مرة أخرى.
                 </p>
               </div>
             </div>
