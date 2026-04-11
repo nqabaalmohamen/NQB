@@ -66,24 +66,34 @@ const Council = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10 md:py-16" dir="rtl">
-      <div className="text-center mb-12 md:20">
-        <h1 className="text-3xl md:text-5xl font-serif mb-4 md:6 text-primary">مجلس نقابة المحامين بالفيوم</h1>
-        <div className="w-24 md:32 h-1 md:1.5 bg-secondary mx-auto rounded-full"></div>
-      </div>
-
-      {/* النقيب */}
+      {/* النقيب - يترأس الصفحة */}
       {chairman.length > 0 && (
-        <section className="mb-16 md:24">
-          <div className="flex items-center gap-4 mb-8 md:12 justify-center">
-            <div className="hidden sm:block h-px bg-gray-200 flex-grow max-w-[150px]"></div>
-            <h2 className="text-2xl md:text-4xl font-bold text-primary px-6 py-2 bg-accent/30 rounded-xl">نقيب المحامين</h2>
-            <div className="hidden sm:block h-px bg-gray-200 flex-grow max-w-[150px]"></div>
-          </div>
-          <div className="flex justify-center px-2">
-            {chairman.map(m => <MemberCard key={m.id} member={m} large={true} />)}
+        <section className="mb-20 md:32">
+          <div className="flex flex-col items-center">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.9 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="text-center mb-6"
+            >
+              <h2 className="text-3xl md:text-5xl font-bold text-primary mb-2">نقيب المحامين</h2>
+              <div className="w-24 md:32 h-1.5 bg-secondary mx-auto rounded-full"></div>
+            </motion.div>
+            
+            <div className="flex justify-center px-2 w-full">
+              {chairman.map(m => (
+                <div key={m.id} className="relative">
+                  <MemberCard member={m} large={true} />
+                </div>
+              ))}
+            </div>
           </div>
         </section>
       )}
+
+      <div className="text-center mb-12 md:20">
+        <h1 className="text-2xl md:text-4xl font-serif mb-4 text-gray-700">مجلس نقابة المحامين بالفيوم</h1>
+        <div className="w-16 md:24 h-1 bg-gray-300 mx-auto rounded-full"></div>
+      </div>
 
       {/* الوكلاء */}
       {viceChairmen.length > 0 && (
