@@ -20,7 +20,7 @@ const Institute = () => {
           <img 
             src={data.image} 
             alt="Institute" 
-            className="w-full h-[400px] object-cover rounded-3xl shadow-xl mb-12"
+            className="w-full h-[400px] object-contain rounded-3xl shadow-xl mb-12 bg-gray-50"
             referrerPolicy="no-referrer"
           />
         </div>

@@ -28,7 +28,18 @@ import { useData } from '../../context/DataContext';
 const Dashboard = () => {
   const navigate = useNavigate();
   const location = useLocation();
-  const { news, carousel, members, resources, forensic, institute, settings, messages, clearAllData } = useData();
+  const { 
+    news, 
+    carousel, 
+    members, 
+    resources, 
+    forensic, 
+    institute, 
+    settings, 
+    messages, 
+    clearAllData,
+    publishToGithub 
+  } = useData();
   const [publishing, setPublishing] = useState(false);
   const [publishStatus, setPublishStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   
@@ -50,81 +61,17 @@ const Dashboard = () => {
     setPublishStatus('loading');
 
     try {
-      // Create a copy of settings without sensitive GitHub info
-      const { githubToken, githubRepo, githubOwner, ...safeSettings } = settings;
-
-      const dataToPublish = {
-        siteSettings: safeSettings,
-        carouselItems: carousel,
-        newsItems: news,
-        councilMembers: members,
-        forensicData: forensic,
-        libraryResources: resources,
-        instituteData: institute,
-        contactMessages: messages
-      };
-
-      const content = btoa(unescape(encodeURIComponent(JSON.stringify(dataToPublish, null, 2))));
-      const path = 'src/data/data.json';
-      
-      // Get the SHA of the current file first
-      const getFileResponse = await fetch(
-        `https://api.github.com/repos/${settings.githubOwner}/${settings.githubRepo}/contents/${path}`,
-        {
-          headers: {
-            'Authorization': `token ${settings.githubToken}`,
-            'Accept': 'application/vnd.github.v3+json'
-          }
-        }
-      );
-
-      let sha = '';
-      if (getFileResponse.ok) {
-        const fileData = await getFileResponse.json();
-        sha = fileData.sha;
-      }
-
-      // Update the file
-      const updateResponse = await fetch(
-        `https://api.github.com/repos/${settings.githubOwner}/${settings.githubRepo}/contents/${path}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Authorization': `token ${settings.githubToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: `Update site data from admin dashboard ${new Date().toLocaleString()}`,
-            content: content,
-            sha: sha
-          })
-        }
-      );
-
-      if (updateResponse.ok) {
+      const success = await publishToGithub();
+      if (success) {
         setPublishStatus('success');
         alert('تم نشر التعديلات بنجاح! سيستغرق ظهورها للجميع بضع دقائق.');
       } else {
-        const errorData = await updateResponse.json();
-        console.error('GitHub API Error:', errorData);
-        throw new Error(`GitHub API Error: ${updateResponse.status} - ${errorData.message}`);
+        throw new Error('فشل النشر على GitHub');
       }
     } catch (error: any) {
       console.error('Publish error:', error);
       setPublishStatus('error');
-      
-      let message = 'حدث خطأ أثناء النشر.';
-      if (error.message.includes('401')) {
-        message = 'خطأ في الـ Token: الرمز غير صالح أو انتهت صلاحيته.';
-      } else if (error.message.includes('404')) {
-        message = 'خطأ في المستودع: تأكد من صحة اسم المستخدم واسم المستودع.';
-      } else if (error.message.includes('403')) {
-        message = 'خطأ في الصلاحيات: الـ Token لا يملك صلاحية الرفع (repo scope).';
-      } else if (error.message.includes('422')) {
-        message = 'خطأ في البيانات: غالباً هناك مشكلة في الـ SHA أو مسار الملف.';
-      }
-      
-      alert(`${message}\n\nالتفاصيل: ${error.message}`);
+      alert('حدث خطأ أثناء النشر. يرجى التحقق من إعدادات GitHub.');
     } finally {
       setPublishing(false);
       setTimeout(() => setPublishStatus('idle'), 5000);

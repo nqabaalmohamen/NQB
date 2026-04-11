@@ -5,14 +5,30 @@ import { useData } from '../../context/DataContext';
 import { NewsItem } from '../../data/store';
 
 const NewsManager = () => {
-  const { news: items, updateNews } = useData();
+  const { news: items, updateNews, publishToGithub } = useData();
   const [isEditing, setIsEditing] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<NewsItem | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const saveToStorage = (newItems: NewsItem[]) => {
-    updateNews(newItems);
+  const saveToStorage = async (newItems: NewsItem[]) => {
+    setSaving(true);
+    try {
+      updateNews(newItems);
+      // Directly sync with GitHub
+      const success = await publishToGithub();
+      if (success) {
+        alert('تم حفظ التعديلات ونشرها على الموقع بنجاح');
+      } else {
+        alert('تم حفظ التعديلات محلياً، ولكن فشل النشر على GitHub. يرجى التحقق من الإعدادات.');
+      }
+    } catch (error) {
+      console.error('Error saving:', error);
+      alert('حدث خطأ أثناء الحفظ');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,8 +134,8 @@ const NewsManager = () => {
                   </label>
                 </div>
                 {editForm?.image && (
-                  <div className="mt-4 relative w-32 h-20 rounded-lg overflow-hidden border border-gray-200">
-                    <img src={editForm.image} alt="Preview" className="w-full h-full object-cover" />
+                  <div className="mt-4 relative w-32 h-20 rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
+                    <img src={editForm.image} alt="Preview" className="w-full h-full object-contain" />
                   </div>
                 )}
               </div>
@@ -147,9 +163,14 @@ const NewsManager = () => {
             <div className="flex gap-4 mt-8">
               <button
                 onClick={isAdding ? handleAdd : handleSaveEdit}
-                className="bg-green-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-green-700 transition-all shadow-md"
+                disabled={saving || uploading}
+                className={`bg-green-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-green-700 transition-all shadow-md ${(saving || uploading) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <Save className="h-5 w-5" />
+                {saving ? (
+                  <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+                ) : (
+                  <Save className="h-5 w-5" />
+                )}
                 {isAdding ? 'نشر الخبر' : 'حفظ التعديلات'}
               </button>
               <button
@@ -171,11 +192,11 @@ const NewsManager = () => {
         <div className="grid grid-cols-1 gap-6">
           {items.map((item) => (
             <div key={item.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden flex flex-col md:flex-row group hover:shadow-md transition-all">
-              <div className="md:w-64 h-48 shrink-0 relative">
+              <div className="md:w-64 h-48 shrink-0 relative bg-gray-50">
                 <img
                   src={item.image}
                   alt={item.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
                 <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors"></div>
               </div>

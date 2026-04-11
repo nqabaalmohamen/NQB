@@ -29,7 +29,7 @@ const Forensic = () => {
           <img 
             src={data.image} 
             alt="Forensic" 
-            className="rounded-3xl shadow-2xl border-8 border-white w-full h-auto object-cover"
+            className="rounded-3xl shadow-2xl border-8 border-white w-full h-auto object-contain bg-gray-50"
             referrerPolicy="no-referrer"
           />
         </div>

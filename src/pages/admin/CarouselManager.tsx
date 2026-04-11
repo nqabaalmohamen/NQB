@@ -5,14 +5,30 @@ import { useData } from '../../context/DataContext';
 import { CarouselItem } from '../../data/store';
 
 const CarouselManager = () => {
-  const { carousel: items, updateCarousel } = useData();
+  const { carousel: items, updateCarousel, publishToGithub } = useData();
   const [isEditing, setIsEditing] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<CarouselItem | null>(null);
   const [isAdding, setIsAdding] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
-  const saveToStorage = (newItems: CarouselItem[]) => {
-    updateCarousel(newItems);
+  const saveToStorage = async (newItems: CarouselItem[]) => {
+    setSaving(true);
+    try {
+      updateCarousel(newItems);
+      // Directly sync with GitHub
+      const success = await publishToGithub();
+      if (success) {
+        alert('تم حفظ التعديلات ونشرها على الموقع بنجاح');
+      } else {
+        alert('تم حفظ التعديلات محلياً، ولكن فشل النشر على GitHub. يرجى التحقق من الإعدادات.');
+      }
+    } catch (error) {
+      console.error('Error saving:', error);
+      alert('حدث خطأ أثناء الحفظ');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -118,8 +134,8 @@ const CarouselManager = () => {
                   </label>
                 </div>
                 {editForm?.image && (
-                  <div className="mt-4 relative w-48 h-28 rounded-lg overflow-hidden border border-gray-200">
-                    <img src={editForm.image} alt="Preview" className="w-full h-full object-cover" />
+                  <div className="mt-4 relative w-48 h-28 rounded-lg overflow-hidden border border-gray-200 bg-gray-100">
+                    <img src={editForm.image} alt="Preview" className="w-full h-full object-contain" />
                   </div>
                 )}
               </div>
@@ -137,9 +153,14 @@ const CarouselManager = () => {
             <div className="flex gap-4 mt-8">
               <button
                 onClick={isAdding ? handleAdd : handleSaveEdit}
-                className="bg-green-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-green-700 transition-all shadow-md"
+                disabled={saving || uploading}
+                className={`bg-green-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-green-700 transition-all shadow-md ${(saving || uploading) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                <Save className="h-5 w-5" />
+                {saving ? (
+                  <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+                ) : (
+                  <Save className="h-5 w-5" />
+                )}
                 {isAdding ? 'حفظ وإضافة' : 'حفظ التعديلات'}
               </button>
               <button
@@ -161,11 +182,11 @@ const CarouselManager = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {items.map((item) => (
             <div key={item.id} className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden group hover:shadow-xl transition-all duration-300">
-              <div className="relative h-48">
+              <div className="relative h-48 bg-gray-50">
                 <img
                   src={item.image}
                   alt={item.title}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-contain"
                 />
                 <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
                   <button

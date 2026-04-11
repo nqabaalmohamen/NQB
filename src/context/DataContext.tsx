@@ -34,6 +34,8 @@ interface DataContextType {
   updateInstitute: (data: InstituteData) => void;
   updateSettings: (settings: SiteSettings) => void;
   updateMessages: (messages: any[]) => void;
+  publishToGithub: (customData?: any) => Promise<boolean>;
+  clearAllData: () => void;
 }
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
@@ -117,6 +119,79 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     return () => window.removeEventListener('storage', syncWithStorage);
   }, []);
 
+  const publishToGithub = async (customData?: any) => {
+    const settings = state.settings;
+    if (!settings.githubToken || !settings.githubRepo || !settings.githubOwner) {
+      console.error('GitHub settings are missing');
+      return false;
+    }
+
+    try {
+      // Create a copy of settings without sensitive GitHub info
+      const { githubToken, githubRepo, githubOwner, ...safeSettings } = settings;
+
+      const dataToPublish = customData || {
+        siteSettings: safeSettings,
+        carouselItems: state.carousel,
+        newsItems: state.news,
+        councilMembers: state.members,
+        forensicData: state.forensic,
+        libraryResources: state.resources,
+        instituteData: state.institute,
+        contactMessages: state.messages
+      };
+
+      const content = btoa(unescape(encodeURIComponent(JSON.stringify(dataToPublish, null, 2))));
+      const path = 'src/data/data.json';
+      
+      // Get the SHA of the current file first
+      const getFileResponse = await fetch(
+        `https://api.github.com/repos/${settings.githubOwner}/${settings.githubRepo}/contents/${path}`,
+        {
+          headers: {
+            'Authorization': `token ${settings.githubToken}`,
+            'Accept': 'application/vnd.github.v3+json'
+          }
+        }
+      );
+
+      let sha = '';
+      if (getFileResponse.ok) {
+        const fileData = await getFileResponse.json();
+        sha = fileData.sha;
+      }
+
+      // Update the file
+      const updateResponse = await fetch(
+        `https://api.github.com/repos/${settings.githubOwner}/${settings.githubRepo}/contents/${path}`,
+        {
+          method: 'PUT',
+          headers: {
+            'Authorization': `token ${settings.githubToken}`,
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            message: `Update site data from admin panel ${new Date().toLocaleString()}`,
+            content: content,
+            sha: sha
+          })
+        }
+      );
+
+      if (updateResponse.ok) {
+        console.log('Published to GitHub successfully');
+        return true;
+      } else {
+        const errorData = await updateResponse.json();
+        console.error('GitHub API Error:', errorData);
+        return false;
+      }
+    } catch (error) {
+      console.error('Publish error:', error);
+      return false;
+    }
+  };
+
   const updateNews = (items: NewsItem[]) => {
     setState(prev => ({ ...prev, news: items }));
     localStorage.setItem('newsItems', JSON.stringify(items));
@@ -169,6 +244,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     <DataContext.Provider value={{
       ...state,
       updateNews, updateCarousel, updateMembers, updateResources, updateForensic, updateInstitute, updateSettings, updateMessages,
+      publishToGithub,
       clearAllData
     }}>
       {children}

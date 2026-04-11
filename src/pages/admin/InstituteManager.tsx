@@ -4,17 +4,32 @@ import { handleImageUpload } from '../../lib/imageUtils';
 import { useData } from '../../context/DataContext';
 
 const InstituteManager = () => {
-  const { institute: data, updateInstitute } = useData();
+  const { institute: data, updateInstitute, publishToGithub } = useData();
   const [localData, setLocalData] = useState(data);
   const [uploading, setUploading] = useState(false);
+  const [saving, setSaving] = useState(false);
 
   useEffect(() => {
     setLocalData(data);
   }, [data]);
 
-  const handleSave = () => {
-    updateInstitute(localData);
-    alert('تم حفظ كافة التعديلات بنجاح');
+  const handleSave = async () => {
+    setSaving(true);
+    try {
+      updateInstitute(localData);
+      // Directly sync with GitHub
+      const success = await publishToGithub();
+      if (success) {
+        alert('تم حفظ كافة التعديلات ونشرها على الموقع بنجاح');
+      } else {
+        alert('تم حفظ التعديلات محلياً، ولكن فشل النشر على GitHub. يرجى التحقق من الإعدادات.');
+      }
+    } catch (error) {
+      console.error('Error saving:', error);
+      alert('حدث خطأ أثناء الحفظ');
+    } finally {
+      setSaving(false);
+    }
   };
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,9 +86,14 @@ const InstituteManager = () => {
           </div>
           <button
             onClick={handleSave}
-            className="bg-primary text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-primary/90 transition-all shadow-md"
+            disabled={saving || uploading}
+            className={`bg-primary text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-primary/90 transition-all shadow-md ${(saving || uploading) ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            <Save className="h-5 w-5" />
+            {saving ? (
+              <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
+            ) : (
+              <Save className="h-5 w-5" />
+            )}
             حفظ الكل
           </button>
         </div>
@@ -121,8 +141,8 @@ const InstituteManager = () => {
                   </label>
                 </div>
                 {localData.image && (
-                  <div className="mt-4 relative w-full h-48 rounded-lg overflow-hidden border border-gray-100">
-                    <img src={localData.image} alt="Preview" className="w-full h-full object-cover" />
+                  <div className="mt-4 relative w-full h-48 rounded-lg overflow-hidden border border-gray-100 bg-gray-50">
+                    <img src={localData.image} alt="Preview" className="w-full h-full object-contain" />
                   </div>
                 )}
               </div>
