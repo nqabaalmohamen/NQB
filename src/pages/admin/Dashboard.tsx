@@ -50,8 +50,11 @@ const Dashboard = () => {
     setPublishStatus('loading');
 
     try {
+      // Create a copy of settings without sensitive GitHub info
+      const { githubToken, githubRepo, githubOwner, ...safeSettings } = settings;
+
       const dataToPublish = {
-        siteSettings: settings,
+        siteSettings: safeSettings,
         carouselItems: carousel,
         newsItems: news,
         councilMembers: members,

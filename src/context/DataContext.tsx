@@ -50,10 +50,16 @@ const loadInitialData = async () => {
       );
       if (response.ok) {
         const remoteData = await response.json();
-        // Merge remote data with local messages which shouldn't be overwritten easily
+        // Merge remote data with local messages and preserve local GitHub settings
         const localMessages = localStorage.getItem('contactMessages');
         return {
           ...remoteData,
+          settings: {
+            ...remoteData.siteSettings,
+            githubToken: settings.githubToken,
+            githubRepo: settings.githubRepo,
+            githubOwner: settings.githubOwner
+          },
           messages: localMessages ? JSON.parse(localMessages) : remoteData.contactMessages || []
         };
       }
