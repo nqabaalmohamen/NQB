@@ -188,31 +188,37 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let repo = state.settings.githubRepo?.trim() || '';
     let token = state.settings.githubToken?.trim() || '';
 
-    // Advanced cleaning for token (in case user pasted "token ghp_..." or "Bearer ghp_...")
-    if (token.toLowerCase().startsWith('token ')) token = token.substring(6).trim();
-    if (token.toLowerCase().startsWith('bearer ')) token = token.substring(7).trim();
-
-    // Advanced cleaning for owner/repo if full URL is pasted
-    if (owner.includes('github.com/')) {
-      const parts = owner.split('github.com/')[1].split('/').filter(Boolean);
-      if (parts.length >= 1) owner = parts[0];
-      if (parts.length >= 2 && !repo) repo = parts[1];
-    }
-    if (repo.includes('github.com/')) {
-      const parts = repo.split('github.com/')[1].split('/').filter(Boolean);
-      if (parts.length >= 2) repo = parts[1];
-      else if (parts.length >= 1) repo = parts[0];
+    // Aggressive cleaning for token: only take the ghp_ or github_pat_ part
+    const tokenMatch = token.match(/(ghp_[a-zA-Z0-9]+|github_pat_[a-zA-Z0-9_]+)/);
+    if (tokenMatch) {
+      token = tokenMatch[0];
+    } else {
+      // If no match, just take it as is but clean prefixes
+      if (token.toLowerCase().startsWith('token ')) token = token.substring(6).trim();
+      if (token.toLowerCase().startsWith('bearer ')) token = token.substring(7).trim();
     }
 
-    // Fallback simple cleaning
-    if (owner.includes('/') && !owner.includes('http')) {
-      const parts = owner.split('/').filter(Boolean);
-      owner = parts[0];
-      if (parts.length >= 2 && !repo) repo = parts[1];
+    // Extracting owner/repo from any format (URL, user/repo, or just name)
+    const extractParts = (input: string) => {
+      let parts = input.replace(/https?:\/\/github\.com\//, '').split('/').filter(Boolean);
+      return parts;
+    };
+
+    const ownerParts = extractParts(owner);
+    const repoParts = extractParts(repo);
+
+    if (ownerParts.length >= 2) {
+      owner = ownerParts[0];
+      if (!repo) repo = ownerParts[1];
+    } else if (ownerParts.length === 1) {
+      owner = ownerParts[0];
     }
-    if (repo.includes('/') && !repo.includes('http')) {
-      const parts = repo.split('/').filter(Boolean);
-      repo = parts.pop() || repo;
+
+    if (repoParts.length >= 2) {
+      if (!owner) owner = repoParts[0];
+      repo = repoParts[1];
+    } else if (repoParts.length === 1) {
+      repo = repoParts[0];
     }
 
     if (!token || !repo || !owner) {
@@ -223,10 +229,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setState(prev => ({ ...prev, isPublishing: true }));
 
     try {
-      // Diagnostic Ping to GitHub API to check connectivity
-      await fetch('https://api.github.com/zen').catch(() => {
-        throw new Error('متصفحك لا يستطيع الوصول لخوادم GitHub. قد يكون هناك حظر من شبكة الإنترنت (مثل Proxy أو VPN) أو إضافة حماية بالمتصفح.');
-      });
+      // 1. Connectivity Check
+      try {
+        await fetch('https://api.github.com/zen', { mode: 'cors', cache: 'no-store' });
+      } catch (e) {
+        throw new Error('تعذر الوصول لخوادم GitHub. يرجى التأكد من جودة الإنترنت أو إيقاف أي إضافات (Ad-blocker) قد تمنع الاتصال.');
+      }
 
       const dataToPublish = customData || {
         siteSettings: {
@@ -250,40 +258,72 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const content = btoa(unescape(encodeURIComponent(JSON.stringify(dataToPublish, null, 2))));
       const path = 'src/data/data.json';
       
-      const sizeInMB = (content.length * 0.75) / (1024 * 1024);
-      if (sizeInMB > 20) {
-        throw new Error('حجم البيانات كبير جداً (أكثر من 20 ميجابايت). يرجى تقليل عدد الصور أو حجمها.');
-      }
-
       const encOwner = encodeURIComponent(owner);
       const encRepo = encodeURIComponent(repo);
+      const apiUrl = `https://api.github.com/repos/${encOwner}/${encRepo}/contents/${path}`;
 
-      // 1. Get current SHA
-      const getFileResponse = await fetch(
-        `https://api.github.com/repos/${encOwner}/${encRepo}/contents/${path}`,
-        {
-          headers: {
-            'Authorization': `token ${token}`,
-            'Accept': 'application/vnd.github.v3+json',
-            'Cache-Control': 'no-cache'
-          }
-        }
-      ).catch(err => {
-        console.error('GitHub API Error:', err);
-        throw new Error(`فشل الاتصال الموثق مع GitHub. تأكد من صحة التوكن واسم المستودع. (التفاصيل: ${err.message})`);
+      // 2. Fetch SHA with modern Bearer token
+      const getFileResponse = await fetch(apiUrl, {
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Accept': 'application/vnd.github.v3+json',
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        },
+        mode: 'cors'
+      }).catch(err => {
+        console.error('Fetch Error Detail:', err);
+        throw new Error(`فشل الاتصال الموثق. يرجى التأكد من أن التوكن يمتلك صلاحية الوصول للمستودع (${owner}/${repo}).\n(الخطأ: ${err.message})`);
       });
 
       let sha = '';
       if (getFileResponse.ok) {
         const fileData = await getFileResponse.json();
         sha = fileData.sha;
-      } else if (getFileResponse.status === 401) {
-        throw new Error('التوكن غير صالح. يرجى التأكد من نسخ التوكن (GitHub Token) بشكل صحيح.');
+      } else if (getFileResponse.status === 401 || getFileResponse.status === 403) {
+        const errData = await getFileResponse.json().catch(() => ({}));
+        throw new Error(`التوكن غير صالح أو لا يملك صلاحيات كافية (صلاحية repo). يرجى التأكد من إعدادات التوكن في GitHub.\n(التفاصيل: ${errData.message || 'Access Denied'})`);
       } else if (getFileResponse.status === 404) {
-        throw new Error(`المستودع غير موجود أو لا يملك التوكن صلاحية الوصول إليه. تأكد من كتابة المالك: (${owner}) والمستودع: (${repo}) بدقة.`);
-      } else if (getFileResponse.status !== 404) {
-        const errorData = await getFileResponse.json();
-        throw new Error(`خطأ من GitHub (${getFileResponse.status}): ${errorData.message}`);
+        throw new Error(`المستودع غير موجود أو الرابط غير صحيح. تأكد من أن المالك (${owner}) والمستودع (${repo}) صحيحان.`);
+      } else {
+        const errData = await getFileResponse.json().catch(() => ({}));
+        throw new Error(`خطأ من GitHub (${getFileResponse.status}): ${errData.message || 'فشل الحصول على معلومات الملف'}`);
+      }
+
+      // 3. Update with Timeout and Retry logic
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
+
+      try {
+        const updateResponse = await fetch(apiUrl, {
+          method: 'PUT',
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json',
+            'Accept': 'application/vnd.github.v3+json'
+          },
+          body: JSON.stringify({
+            message: `تحديث البيانات - ${new Date().toLocaleString('ar-EG')}`,
+            content: content,
+            sha: sha
+          }),
+          mode: 'cors',
+          signal: controller.signal
+        });
+
+        clearTimeout(timeoutId);
+
+        if (updateResponse.ok) {
+          return true;
+        } else {
+          const errorData = await updateResponse.json().catch(() => ({}));
+          throw new Error(errorData.message || 'فشل إرسال التحديث لـ GitHub');
+        }
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          throw new Error('انتهت مهلة الاتصال. حجم البيانات كبير أو سرعة الإنترنت ضعيفة جداً.');
+        }
+        throw err;
       }
 
       // 2. Update the file
