@@ -189,13 +189,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let token = state.settings.githubToken?.trim() || '';
 
     // Aggressive cleaning for token: only take the ghp_ or github_pat_ part
-    const tokenMatch = token.match(/(ghp_[a-zA-Z0-9]+|github_pat_[a-zA-Z0-9_]+)/);
+    const tokenMatch = token.match(/(ghp_[a-zA-Z0-9]{20,}|github_pat_[a-zA-Z0-9_]{20,})/);
     if (tokenMatch) {
       token = tokenMatch[0];
     } else {
-      // If no match, just take it as is but clean prefixes
-      if (token.toLowerCase().startsWith('token ')) token = token.substring(6).trim();
-      if (token.toLowerCase().startsWith('bearer ')) token = token.substring(7).trim();
+      // Cleanup prefixes if regex didn't catch it
+      token = token.replace(/^(token|bearer|github_pat)\s+/i, '').trim();
     }
 
     // Extracting owner/repo from any format (URL, user/repo, or just name)
@@ -265,7 +264,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       const getFileResponse = await fetch(apiUrl, {
         headers: {
-          'Authorization': `token ${token}`,
+          'Authorization': `Bearer ${token}`,
           'Accept': 'application/vnd.github.v3+json'
         },
         mode: 'cors',
@@ -307,7 +306,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const updateResponse = await fetch(apiUrl, {
           method: 'PUT',
           headers: {
-            'Authorization': `token ${token}`,
+            'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json',
             'Accept': 'application/vnd.github.v3+json'
           },

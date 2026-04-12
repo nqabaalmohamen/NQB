@@ -27,11 +27,16 @@ const SettingsManager = () => {
     setTestStatus('idle');
 
     try {
+      // Clean token before testing
+      const token = localSettings.githubToken?.trim() || '';
+      const cleanedToken = token.match(/(ghp_[a-zA-Z0-9]{20,}|github_pat_[a-zA-Z0-9_]{20,})/)?.[0] 
+        || token.replace(/^(token|bearer|github_pat)\s+/i, '').trim();
+
       const response = await fetch(
-        `https://api.github.com/repos/${localSettings.githubOwner}/${localSettings.githubRepo}`,
+        `https://api.github.com/repos/${localSettings.githubOwner?.trim()}/${localSettings.githubRepo?.trim()}`,
         {
           headers: {
-            'Authorization': `token ${localSettings.githubToken}`,
+            'Authorization': `Bearer ${cleanedToken}`,
             'Accept': 'application/vnd.github.v3+json'
           }
         }
