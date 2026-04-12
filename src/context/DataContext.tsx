@@ -172,14 +172,28 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
-    const settings = {
-      githubToken: state.settings.githubToken?.trim(),
-      githubRepo: state.settings.githubRepo?.trim(),
-      githubOwner: state.settings.githubOwner?.trim(),
+    const cleanInput = (text: string) => {
+      if (!text) return '';
+      // If user pasted a full URL like https://github.com/owner/repo
+      let cleaned = text.trim();
+      if (cleaned.includes('github.com/')) {
+        const parts = cleaned.split('github.com/')[1].split('/');
+        // Return owner or repo depending on context, but here we just return the last part if it's a simple split
+        // This is a helper, we'll use more specific logic below
+      }
+      return cleaned;
     };
 
-    if (!settings.githubToken || !settings.githubRepo || !settings.githubOwner) {
-      console.error('GitHub settings are missing');
+    let owner = state.settings.githubOwner?.trim() || '';
+    let repo = state.settings.githubRepo?.trim() || '';
+    const token = state.settings.githubToken?.trim() || '';
+
+    // Advanced cleaning for owner/repo
+    if (owner.includes('/')) owner = owner.split('/').filter(Boolean).pop() || owner;
+    if (repo.includes('/')) repo = repo.split('/').filter(Boolean).pop() || repo;
+
+    if (!token || !repo || !owner) {
+      console.error('GitHub settings are missing', { owner, repo, hasToken: !!token });
       alert('إعدادات GitHub غير مكتملة. يرجى التأكد من إدخال التوكن، اسم المستودع، والمالك.');
       return false;
     }
@@ -194,8 +208,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           contactPhone: state.settings.contactPhone,
           address: state.settings.address,
           footerText: state.settings.footerText,
-          githubRepo: settings.githubRepo,
-          githubOwner: settings.githubOwner
+          githubRepo: repo,
+          githubOwner: owner
         },
         carouselItems: state.carousel,
         newsItems: state.news,
@@ -214,19 +228,23 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         throw new Error('حجم البيانات كبير جداً (أكثر من 20 ميجابايت). يرجى تقليل عدد الصور أو حجمها.');
       }
 
+      // Encode owner and repo for URL
+      const encOwner = encodeURIComponent(owner);
+      const encRepo = encodeURIComponent(repo);
+
       // 1. Get current SHA
       const getFileResponse = await fetch(
-        `https://api.github.com/repos/${settings.githubOwner}/${settings.githubRepo}/contents/${path}`,
+        `https://api.github.com/repos/${encOwner}/${encRepo}/contents/${path}`,
         {
           headers: {
-            'Authorization': `Bearer ${settings.githubToken}`,
+            'Authorization': `token ${token}`,
             'Accept': 'application/vnd.github.v3+json',
             'Cache-Control': 'no-cache'
           }
         }
       ).catch(err => {
         console.error('Fetch Error (GET SHA):', err);
-        throw new Error('فشل الاتصال بخوادم GitHub. قد يكون هناك حظر من المتصفح أو إضافة (Extension) تمنع الاتصال.');
+        throw new Error('فشل الاتصال بخوادم GitHub. يرجى التأكد من عدم وجود إضافات بالمتصفح تمنع الاتصال (مثل مانع الإعلانات) أو تجربة متصفح آخر.');
       });
 
       let sha = '';
@@ -235,7 +253,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         sha = fileData.sha;
       } else if (getFileResponse.status !== 404) {
         const errorData = await getFileResponse.json();
-        throw new Error(`فشل الحصول على معلومات المستودع: ${errorData.message}`);
+        if (getFileResponse.status === 401) throw new Error('التوكن غير صالح. تأكد من صحة الـ GitHub Token في الإعدادات.');
+        throw new Error(`فشل الوصول للمستودع (${getFileResponse.status}): ${errorData.message}`);
       }
 
       // 2. Update the file
@@ -244,16 +263,16 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
       try {
         const updateResponse = await fetch(
-          `https://api.github.com/repos/${settings.githubOwner}/${settings.githubRepo}/contents/${path}`,
+          `https://api.github.com/repos/${encOwner}/${encRepo}/contents/${path}`,
           {
             method: 'PUT',
             headers: {
-              'Authorization': `Bearer ${settings.githubToken}`,
+              'Authorization': `token ${token}`,
               'Content-Type': 'application/json',
               'Accept': 'application/vnd.github.v3+json'
             },
             body: JSON.stringify({
-              message: `تحديث بيانات الموقع من لوحة التحكم - ${new Date().toLocaleString('ar-EG')}`,
+              message: `تحديث بيانات الموقع - ${new Date().toLocaleString('ar-EG')}`,
               content: content,
               sha: sha
             }),
@@ -261,7 +280,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
         ).catch(err => {
           console.error('Fetch Error (PUT):', err);
-          throw new Error('فشل إرسال البيانات لـ GitHub. تأكد من جودة الإنترنت أو جرب متصفحاً آخر.');
+          throw new Error('فشل إرسال البيانات. قد تكون المشكلة في ضعف جودة الإنترنت.');
         });
 
         clearTimeout(timeoutId);
@@ -271,10 +290,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         } else {
           const errorData = await updateResponse.json();
           let errorMsg = errorData.message || 'خطأ غير معروف';
-          if (updateResponse.status === 401) errorMsg = 'التوكن غير صالح أو انتهت صلاحيته. يرجى تحديث التوكن في الإعدادات.';
-          if (updateResponse.status === 404) errorMsg = 'المستودع غير موجود. تأكد من كتابة الاسم ومالك المستودع بدقة.';
           if (updateResponse.status === 403) errorMsg = 'التوكن لا يملك صلاحية الرفع (Permissions). تأكد من تفعيل صلاحية "repo" عند إنشاء التوكن.';
-          
           throw new Error(errorMsg);
         }
       } catch (err: any) {
