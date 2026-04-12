@@ -79,6 +79,18 @@ const Navbar = () => {
     { name: 'اتصل بنا', path: '/contact', icon: Phone },
   ];
 
+  const handleLinkClick = (path: string, e: React.MouseEvent) => {
+    if (path === '#') {
+      e.preventDefault();
+      return;
+    }
+    
+    if (path.startsWith('http')) {
+      e.preventDefault();
+      window.open(path, '_blank', 'noopener,noreferrer');
+    }
+  };
+
   const handleSearch = (e: React.FormEvent, overrideQuery?: string) => {
     if (e) e.preventDefault();
     const finalQuery = overrideQuery || searchQuery;
@@ -136,38 +148,41 @@ const Navbar = () => {
               <div key={link.name} className="relative group">
                 {link.dropdown ? (
                   <div 
-                    className="flex items-center gap-1.5 cursor-pointer hover:text-secondary transition-all py-2 px-3 rounded-lg hover:bg-white/5"
-                    onMouseEnter={() => setServicesOpen(true)}
-                    onMouseLeave={() => setServicesOpen(false)}
-                  >
-                    <link.icon className="h-4 w-4" />
-                    <span className="font-bold text-sm">{link.name}</span>
-                    <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", servicesOpen && "rotate-180")} />
-                    
-                    {/* Dropdown */}
-                    <div className={cn(
-                      "absolute top-full right-0 w-56 bg-white text-primary shadow-2xl rounded-xl border-t-4 border-secondary transition-all duration-300 origin-top mt-1 overflow-hidden z-50",
-                      servicesOpen ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-0 -translate-y-2 pointer-events-none"
-                    )}>
-                      {link.dropdown.map((sub) => (
-                        <Link
-                          key={sub.name}
-                          to={sub.path}
-                          className="block px-6 py-4 hover:bg-accent hover:text-secondary font-bold transition-colors border-b border-gray-100 last:border-0 text-right"
-                        >
-                          {sub.name}
-                        </Link>
-                      ))}
+                      className="flex items-center gap-1.5 cursor-pointer hover:text-secondary transition-all py-2 px-3 rounded-lg hover:bg-white/5"
+                      onMouseEnter={() => setServicesOpen(true)}
+                      onMouseLeave={() => setServicesOpen(false)}
+                      onClick={(e) => handleLinkClick(link.path, e)}
+                    >
+                      <link.icon className="h-4 w-4" />
+                      <span className="font-bold text-sm">{link.name}</span>
+                      <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", servicesOpen && "rotate-180")} />
+                      
+                      {/* Dropdown */}
+                      <div className={cn(
+                        "absolute top-full right-0 w-56 bg-white text-primary shadow-2xl rounded-xl border-t-4 border-secondary transition-all duration-300 origin-top mt-1 overflow-hidden z-50",
+                        servicesOpen ? "opacity-100 scale-y-100 translate-y-0" : "opacity-0 scale-y-0 -translate-y-2 pointer-events-none"
+                      )}>
+                        {link.dropdown.map((sub) => (
+                          <Link
+                            key={sub.name}
+                            to={sub.path}
+                            onClick={(e) => handleLinkClick(sub.path, e)}
+                            className="block px-6 py-4 hover:bg-accent hover:text-secondary font-bold transition-colors border-b border-gray-100 last:border-0 text-right"
+                          >
+                            {sub.name}
+                          </Link>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ) : (
-                  <Link 
-                    to={link.path} 
-                    className={cn(
-                      "flex items-center gap-1.5 hover:text-secondary transition-all py-2 px-3 rounded-lg hover:bg-white/5 font-bold text-sm",
-                      location.pathname === link.path && "text-secondary bg-white/10"
-                    )}
-                  >
+                  ) : (
+                    <Link 
+                      to={link.path} 
+                      onClick={(e) => handleLinkClick(link.path, e)}
+                      className={cn(
+                        "flex items-center gap-1.5 hover:text-secondary transition-all py-2 px-3 rounded-lg hover:bg-white/5 font-bold text-sm",
+                        location.pathname === link.path && "text-secondary bg-white/10"
+                      )}
+                    >
                     <link.icon className="h-4 w-4" />
                     <span>{link.name}</span>
                   </Link>
@@ -304,22 +319,36 @@ const Navbar = () => {
                             className="bg-white/5 rounded-xl mt-2 overflow-hidden"
                           >
                             <div className="py-2 space-y-1">
-                              {link.dropdown.map((sub) => (
-                                <Link key={sub.name} to={sub.path} className="block px-12 py-3 text-base hover:text-secondary font-medium transition-colors">
-                                  {sub.name}
-                                </Link>
-                              ))}
-                            </div>
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </>
-                  ) : (
-                    <Link to={link.path} className="block px-4 py-3 flex items-center gap-3 hover:bg-white/5 rounded-xl font-bold text-lg transition-colors">
-                      <link.icon className={cn("h-5 w-5", location.pathname === link.path ? "text-secondary" : "text-secondary/70")} /> 
-                      <span className={cn(location.pathname === link.path && "text-secondary")}>{link.name}</span>
+                              <Link 
+                      key={sub.name} 
+                      to={sub.path} 
+                      onClick={(e) => {
+                        setIsOpen(false);
+                        handleLinkClick(sub.path, e);
+                      }}
+                      className="block px-12 py-3 text-base hover:text-secondary font-medium transition-colors"
+                    >
+                      {sub.name}
                     </Link>
-                  )}
+                  ))}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </>
+      ) : (
+        <Link 
+          to={link.path} 
+          onClick={(e) => {
+            setIsOpen(false);
+            handleLinkClick(link.path, e);
+          }}
+          className="block px-4 py-3 flex items-center gap-3 hover:bg-white/5 rounded-xl font-bold text-lg transition-colors"
+        >
+          <link.icon className={cn("h-5 w-5", location.pathname === link.path ? "text-secondary" : "text-secondary/70")} /> 
+          <span className={cn(location.pathname === link.path && "text-secondary")}>{link.name}</span>
+        </Link>
+      )}
                 </div>
               ))}
             </div>

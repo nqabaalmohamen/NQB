@@ -67,7 +67,13 @@ const ImageCarousel: React.FC = () => {
                 {carouselItems[currentIndex].title}
               </h2>
               <Link
-                to={carouselItems[currentIndex].link}
+                to={carouselItems[currentIndex].link.startsWith('http') ? '#' : carouselItems[currentIndex].link}
+                onClick={(e) => {
+                  if (carouselItems[currentIndex].link.startsWith('http')) {
+                    e.preventDefault();
+                    window.open(carouselItems[currentIndex].link, '_blank', 'noopener,noreferrer');
+                  }
+                }}
                 className="bg-secondary text-primary font-bold px-6 py-2 md:px-10 md:py-3 rounded-xl hover:bg-white transition-all shadow-xl inline-flex items-center justify-center text-sm md:text-lg active:scale-95"
               >
                 عرض التفاصيل

@@ -58,13 +58,28 @@ const Footer = () => {
           <div>
             <h3 className="text-lg font-bold mb-6 border-r-4 border-secondary pr-3">تابعنا على</h3>
             <div className="flex gap-4">
-              <a href="#" className="bg-white/10 p-3 rounded-full hover:bg-secondary transition-colors">
+              <a 
+                href="https://facebook.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="bg-white/10 p-3 rounded-full hover:bg-secondary transition-colors"
+              >
                 <Facebook className="h-6 w-6" />
               </a>
-              <a href="#" className="bg-white/10 p-3 rounded-full hover:bg-secondary transition-colors">
+              <a 
+                href="https://twitter.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="bg-white/10 p-3 rounded-full hover:bg-secondary transition-colors"
+              >
                 <Twitter className="h-6 w-6" />
               </a>
-              <a href="#" className="bg-white/10 p-3 rounded-full hover:bg-secondary transition-colors">
+              <a 
+                href="https://instagram.com" 
+                target="_blank" 
+                rel="noopener noreferrer" 
+                className="bg-white/10 p-3 rounded-full hover:bg-secondary transition-colors"
+              >
                 <Instagram className="h-6 w-6" />
               </a>
             </div>
