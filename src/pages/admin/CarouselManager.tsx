@@ -151,7 +151,26 @@ const CarouselManager = () => {
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all"
                   placeholder="/news/example أو ضع (ID) الخبر من قسم إدارة الأخبار"
                 />
-                <p className="mt-2 text-xs text-gray-500">يمكنك وضع رابط كامل، أو مسار داخلي مثل <code className="bg-gray-100 px-1">/library</code>، أو ببساطة معرف الخبر (News ID) ليتم الربط تلقائياً.</p>
+                <p className="mt-2 text-xs text-gray-500">يمكنك وضع رابط كامل، أو مسار داخلي، أو ترك الخانة فارغة إذا كنت تريد كتابة محتوى خاص لهذه الصورة بالأسفل.</p>
+              </div>
+              <div className="md:col-span-2">
+                <label className="block text-sm font-bold text-gray-700 mb-2 text-primary">محتوى الخبر (اختياري - يظهر عند الضغط على عرض التفاصيل)</label>
+                <div className="flex gap-4 mb-4">
+                  <input
+                    type="text"
+                    value={editForm?.date || ''}
+                    onChange={(e) => setEditForm({ ...editForm!, date: e.target.value })}
+                    className="flex-grow bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all"
+                    placeholder="تاريخ الخبر (مثال: 15 مايو 2024)"
+                  />
+                </div>
+                <textarea
+                  value={editForm?.content || ''}
+                  onChange={(e) => setEditForm({ ...editForm!, content: e.target.value })}
+                  rows={4}
+                  className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all"
+                  placeholder="اكتب تفاصيل الخبر هنا إذا كنت تريد إنشاء صفحة منفصلة لهذه الصورة تلقائياً..."
+                />
               </div>
             </div>
             <div className="flex gap-4 mt-8">

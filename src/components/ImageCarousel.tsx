@@ -68,15 +68,17 @@ const ImageCarousel: React.FC = () => {
               </h2>
               <Link
                 to={
-                  carouselItems[currentIndex].link.startsWith('http') 
+                  carouselItems[currentIndex].link?.startsWith('http') 
                     ? '#' 
-                    : carouselItems[currentIndex].link.match(/^\d+$/) 
+                    : carouselItems[currentIndex].link?.match(/^\d+$/) 
                       ? `/news/${carouselItems[currentIndex].link}`
-                      : carouselItems[currentIndex].link
+                      : carouselItems[currentIndex].content 
+                        ? `/news/${carouselItems[currentIndex].id}`
+                        : carouselItems[currentIndex].link || '#'
                 }
                 onClick={(e) => {
                   const link = carouselItems[currentIndex].link;
-                  if (link.startsWith('http')) {
+                  if (link?.startsWith('http')) {
                     e.preventDefault();
                     window.open(link, '_blank', 'noopener,noreferrer');
                   }

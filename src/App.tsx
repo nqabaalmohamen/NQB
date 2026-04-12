@@ -25,10 +25,12 @@ import LibraryManager from './pages/admin/LibraryManager';
 import InstituteManager from './pages/admin/InstituteManager';
 import SettingsManager from './pages/admin/SettingsManager';
 import MessagesManager from './pages/admin/MessagesManager';
+import Maintenance from './pages/Maintenance';
 import ProtectedRoute from './components/admin/ProtectedRoute';
-import { DataProvider } from './context/DataContext';
+import { DataProvider, useData } from './context/DataContext';
 
 const AppContent = () => {
+  const { settings } = useData();
   const [loading, setLoading] = useState(false);
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith('/admin');
@@ -41,6 +43,11 @@ const AppContent = () => {
     }, 400); // Reduced delay for better responsiveness
     return () => clearTimeout(timer);
   }, [location]);
+
+  // If maintenance mode is ON and user is NOT an admin, show maintenance page
+  if (settings.maintenanceMode && !isAdminPath) {
+    return <Maintenance endTime={settings.maintenanceEndTime} />;
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-accent">

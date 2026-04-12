@@ -5,6 +5,8 @@ export interface CarouselItem {
   image: string;
   title: string;
   link: string;
+  content?: string;
+  date?: string;
 }
 
 export interface NewsItem {
@@ -58,9 +60,15 @@ export interface SiteSettings {
   contactPhone: string;
   address: string;
   footerText: string;
+  maintenanceMode: boolean;
+  maintenanceEndTime?: string;
   githubToken?: string;
   githubRepo?: string;
   githubOwner?: string;
+}
+  isUnderMaintenance?: boolean;
+  maintenanceMessage?: string;
+  maintenanceFinishDate?: string;
 }
 
 export const initialSiteSettings: SiteSettings = initialData.siteSettings;

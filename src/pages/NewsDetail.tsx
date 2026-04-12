@@ -7,18 +7,25 @@ import { motion } from 'framer-motion';
 
 const NewsDetail = () => {
   const { id } = useParams<{ id: string }>();
-  const { news } = useData();
+  const { news, carousel } = useData();
   const navigate = useNavigate();
   const [item, setItem] = useState<any>(null);
 
   useEffect(() => {
-    if (news && id) {
-      const found = news.find(n => n.id.toString() === id);
+    if (id) {
+      // Try to find in news first
+      let found = news?.find(n => n.id.toString() === id);
+      
+      // If not found in news, try in carousel items
+      if (!found && carousel) {
+        found = carousel.find(c => c.id.toString() === id);
+      }
+      
       if (found) {
         setItem(found);
       }
     }
-  }, [id, news]);
+  }, [id, news, carousel]);
 
   if (!item) {
     return (

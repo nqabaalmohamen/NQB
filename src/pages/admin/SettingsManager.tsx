@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Save, Globe, Mail, Phone, MapPin, ShieldCheck, Github, Lock, Database, RefreshCw, CheckCircle2, XCircle } from 'lucide-react';
+import { Save, Globe, Mail, Phone, MapPin, ShieldCheck, Github, Lock, Database, RefreshCw, CheckCircle2, XCircle, AlertTriangle, Clock } from 'lucide-react';
 import { useData } from '../../context/DataContext';
 
 const SettingsManager = () => {
@@ -77,6 +77,79 @@ const SettingsManager = () => {
         </div>
 
         <div className="space-y-8">
+          {/* Maintenance Mode Settings */}
+          <div className={`bg-white rounded-2xl shadow-lg border-2 transition-all overflow-hidden ${
+            localSettings.maintenanceMode ? 'border-yellow-400' : 'border-gray-100'
+          }`}>
+            <div className={`p-6 border-b flex items-center justify-between ${
+              localSettings.maintenanceMode ? 'bg-yellow-50 border-yellow-100' : 'bg-gray-50/50 border-gray-50'
+            }`}>
+              <h2 className="font-bold flex items-center gap-2 text-gray-800">
+                <AlertTriangle className={`h-5 w-5 ${localSettings.maintenanceMode ? 'text-yellow-600' : 'text-gray-400'}`} /> 
+                وضع صيانة الموقع (قفل الموقع)
+              </h2>
+              <button
+                onClick={() => setLocalSettings({ ...localSettings, maintenanceMode: !localSettings.maintenanceMode })}
+                className={`relative inline-flex h-7 w-14 items-center rounded-full transition-colors focus:outline-none ${
+                  localSettings.maintenanceMode ? 'bg-yellow-500' : 'bg-gray-200'
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                    localSettings.maintenanceMode ? '-translate-x-8' : '-translate-x-1'
+                  }`}
+                />
+              </button>
+            </div>
+            <div className="p-8">
+              <div className="flex flex-col md:flex-row gap-8 items-start">
+                <div className="flex-1 space-y-4">
+                  <p className="text-sm text-gray-600 leading-relaxed">
+                    عند تفعيل هذا الوضع، سيتم حجب الموقع بالكامل عن الزوار العاديين واستبداله بصفحة "قيد التحديث". 
+                    <strong className="text-primary block mt-1">المسؤولون فقط يمكنهم تصفح الموقع بشكل طبيعي لمراجعة التعديلات.</strong>
+                  </p>
+                  
+                  {localSettings.maintenanceMode && (
+                    <div className="space-y-4 animate-in fade-in slide-in-from-top-2 duration-300 pt-4">
+                      <label className="block text-sm font-bold text-gray-700 flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-yellow-600" /> وقت انتهاء الصيانة التقريبي (اختياري)
+                      </label>
+                      <input
+                        type="datetime-local"
+                        value={localSettings.maintenanceEndTime || ''}
+                        onChange={(e) => setLocalSettings({ ...localSettings, maintenanceEndTime: e.target.value })}
+                        className="w-full bg-yellow-50/50 border border-yellow-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-yellow-400 outline-none transition-all"
+                      />
+                      <p className="text-xs text-yellow-700">سيظهر عد تنازلي للزوار بناءً على هذا الوقت.</p>
+                    </div>
+                  )}
+                </div>
+                
+                <div className={`p-6 rounded-2xl border flex items-center gap-4 max-w-xs w-full ${
+                  localSettings.maintenanceMode 
+                  ? 'bg-yellow-50 border-yellow-200 text-yellow-800' 
+                  : 'bg-gray-50 border-gray-100 text-gray-400'
+                }`}>
+                  {localSettings.maintenanceMode ? (
+                    <>
+                      <Lock className="h-10 w-10 shrink-0" />
+                      <div className="text-xs font-bold leading-relaxed">
+                        الموقع الآن "مغلق" أمام الجمهور. يمكنك إجراء تحديثاتك بأمان.
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <Globe className="h-10 w-10 shrink-0 opacity-20" />
+                      <div className="text-xs font-bold leading-relaxed">
+                        الموقع الآن متاح للجميع (عام).
+                      </div>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
           {/* General Settings */}
           <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
             <div className="p-6 border-b border-gray-50 bg-gray-50/50">
