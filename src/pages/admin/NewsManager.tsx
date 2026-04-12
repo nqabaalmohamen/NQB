@@ -222,9 +222,20 @@ const NewsManager = () => {
                     </button>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 text-gray-400 text-xs mb-4">
+                <div className="flex items-center gap-3 text-gray-400 text-xs mb-4">
                   <Calendar className="h-4 w-4" />
                   <span>{item.date}</span>
+                  <span className="mx-2">|</span>
+                  <span className="bg-gray-100 px-2 py-0.5 rounded text-gray-500 font-mono">ID: {item.id}</span>
+                  <button 
+                    onClick={() => {
+                      navigator.clipboard.writeText(item.id.toString());
+                      alert('تم نسخ معرف الخبر!');
+                    }}
+                    className="text-primary hover:underline"
+                  >
+                    نسخ المعرف للربط بالسلايدر
+                  </button>
                 </div>
                 <div className="text-gray-600 text-sm line-clamp-2 leading-relaxed">
                   <Linkify text={item.content} />

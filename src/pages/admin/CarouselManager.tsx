@@ -149,8 +149,9 @@ const CarouselManager = () => {
                   value={editForm?.link || ''}
                   onChange={(e) => setEditForm({ ...editForm!, link: e.target.value })}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all"
-                  placeholder="/news/example"
+                  placeholder="/news/example أو ضع (ID) الخبر من قسم إدارة الأخبار"
                 />
+                <p className="mt-2 text-xs text-gray-500">يمكنك وضع رابط كامل، أو مسار داخلي مثل <code className="bg-gray-100 px-1">/library</code>، أو ببساطة معرف الخبر (News ID) ليتم الربط تلقائياً.</p>
               </div>
             </div>
             <div className="flex gap-4 mt-8">

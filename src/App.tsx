@@ -13,6 +13,7 @@ import Library from './pages/Library';
 import Contact from './pages/Contact';
 import Forensic from './pages/Forensic';
 import Institute from './pages/Institute';
+import NewsDetail from './pages/NewsDetail';
 import LoadingSpinner from './components/LoadingSpinner';
 import AdminLogin from './pages/admin/Login';
 import Dashboard from './pages/admin/Dashboard';
@@ -53,6 +54,7 @@ const AppContent = () => {
           <Route path="/contact" element={<Contact />} />
           <Route path="/forensic" element={<Forensic />} />
           <Route path="/institute" element={<Institute />} />
+          <Route path="/news/:id" element={<NewsDetail />} />
           
           {/* Admin Routes */}
           <Route path="/admin/login" element={<AdminLogin />} />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { ShieldCheck, GraduationCap, BookOpen, Newspaper, Bell } from 'lucide-react';
+import { ShieldCheck, GraduationCap, BookOpen, Newspaper, Bell, ArrowRight } from 'lucide-react';
 import ImageCarousel from '../components/ImageCarousel';
 import { useData } from '../context/DataContext';
 import Linkify from '../components/Linkify';
@@ -50,7 +50,11 @@ const Home = () => {
         
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {news.slice(0, 3).map((item) => (
-            <div key={item.id} className="bg-white rounded-lg overflow-hidden shadow-md group">
+            <Link 
+              key={item.id} 
+              to={`/news/${item.id}`}
+              className="bg-white rounded-lg overflow-hidden shadow-md group hover:shadow-xl transition-all duration-300 flex flex-col"
+            >
               <div className="h-48 overflow-hidden bg-gray-50">
                 <img 
                   src={item.image} 
@@ -60,7 +64,7 @@ const Home = () => {
                   loading="lazy"
                 />
               </div>
-              <div className="p-6">
+              <div className="p-6 flex-grow">
                 <div className="flex items-center gap-2 text-xs text-gray-400 mb-3">
                   <Bell className="h-4 w-4" />
                   <span>{item.date}</span>
@@ -72,7 +76,12 @@ const Home = () => {
                   <Linkify text={item.content} />
                 </div>
               </div>
-            </div>
+              <div className="px-6 pb-6 mt-auto">
+                <span className="text-primary font-bold text-sm flex items-center gap-1 group-hover:gap-2 transition-all">
+                  اقرأ المزيد <ArrowRight className="h-4 w-4 rotate-180" />
+                </span>
+              </div>
+            </Link>
           ))}
         </div>
       </section>
