@@ -17,11 +17,7 @@ const NewsManager = () => {
     setSaving(true);
     try {
       updateNews(newItems);
-      // Directly sync with GitHub
-      const success = await publishToGithub();
-      if (success) {
-        // success alert is handled in publishToGithub now if needed or can stay here
-      }
+      // Removed automatic sync with GitHub to allow multiple changes before publishing
     } catch (error) {
       console.error('Error saving:', error);
     } finally {

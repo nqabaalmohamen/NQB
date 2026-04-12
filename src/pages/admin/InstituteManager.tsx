@@ -17,8 +17,7 @@ const InstituteManager = () => {
     setSaving(true);
     try {
       updateInstitute(localData);
-      // Directly sync with GitHub
-      await publishToGithub();
+      // Removed automatic sync with GitHub to allow multiple changes before publishing
     } catch (error) {
       console.error('Error saving:', error);
     } finally {

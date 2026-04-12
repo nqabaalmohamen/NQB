@@ -16,8 +16,7 @@ const CouncilManager = () => {
     setSaving(true);
     try {
       updateMembers(newItems);
-      // Directly sync with GitHub
-      await publishToGithub();
+      // Removed automatic sync with GitHub to allow multiple changes before publishing
     } catch (error) {
       console.error('Error saving:', error);
     } finally {
