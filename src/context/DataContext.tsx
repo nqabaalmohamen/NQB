@@ -46,6 +46,15 @@ const loadInitialData = async () => {
     const savedSettings = localStorage.getItem('siteSettings');
     let settings = savedSettings ? JSON.parse(savedSettings) : initialSiteSettings;
 
+    // Critical fix: Ensure GitHub settings are recovered from dedicated keys if missing in siteSettings
+    const ghToken = localStorage.getItem('gh_token');
+    const ghRepo = localStorage.getItem('gh_repo');
+    const ghOwner = localStorage.getItem('gh_owner');
+
+    if (ghToken) settings.githubToken = ghToken;
+    if (ghRepo) settings.githubRepo = ghRepo;
+    if (ghOwner) settings.githubOwner = ghOwner;
+
     if (settings.githubToken && settings.githubRepo && settings.githubOwner) {
       const response = await fetch(
         `https://raw.githubusercontent.com/${settings.githubOwner}/${settings.githubRepo}/main/src/data/data.json?t=${Date.now()}`
@@ -79,6 +88,17 @@ const loadInitialData = async () => {
   const savedSettings = localStorage.getItem('siteSettings');
   const savedMessages = localStorage.getItem('contactMessages');
 
+  let finalSettings = savedSettings ? JSON.parse(savedSettings) : initialSiteSettings;
+  
+  // Apply persistent GitHub settings even if siteSettings was overwritten or empty
+  const ghTokenFinal = localStorage.getItem('gh_token');
+  const ghRepoFinal = localStorage.getItem('gh_repo');
+  const ghOwnerFinal = localStorage.getItem('gh_owner');
+
+  if (ghTokenFinal) finalSettings.githubToken = ghTokenFinal;
+  if (ghRepoFinal) finalSettings.githubRepo = ghRepoFinal;
+  if (ghOwnerFinal) finalSettings.githubOwner = ghOwnerFinal;
+
   return {
     news: savedNews ? JSON.parse(savedNews) : initialNewsItems,
     carousel: savedCarousel ? JSON.parse(savedCarousel) : initialCarouselItems,
@@ -86,7 +106,7 @@ const loadInitialData = async () => {
     resources: savedResources ? JSON.parse(savedResources) : initialLibraryResources,
     forensic: savedForensic ? JSON.parse(savedForensic) : initialForensicData,
     institute: savedInstitute ? JSON.parse(savedInstitute) : initialInstituteData,
-    settings: savedSettings ? JSON.parse(savedSettings) : initialSiteSettings,
+    settings: finalSettings,
     messages: savedMessages ? JSON.parse(savedMessages) : [],
   };
 };
@@ -225,6 +245,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const updateSettings = (newSettings: SiteSettings) => {
     setState(prev => ({ ...prev, settings: newSettings }));
     localStorage.setItem('siteSettings', JSON.stringify(newSettings));
+    
+    // Also save GitHub settings specifically to ensure they persist across syncs
+    if (newSettings.githubToken) localStorage.setItem('gh_token', newSettings.githubToken);
+    if (newSettings.githubRepo) localStorage.setItem('gh_repo', newSettings.githubRepo);
+    if (newSettings.githubOwner) localStorage.setItem('gh_owner', newSettings.githubOwner);
   };
 
   const updateMessages = (newMessages: any[]) => {
