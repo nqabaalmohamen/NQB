@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import React, { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronDown, Menu, X, Scale, BookOpen, Users, Phone, Home, Search } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { cn } from '@/src/lib/utils';
 import { useData } from '../context/DataContext';
 
@@ -232,72 +232,100 @@ const Navbar = () => {
       </div>
 
       {/* Mobile Search Overlay */}
-      <div className={cn(
-        "lg:hidden absolute top-full left-0 w-full bg-primary/95 backdrop-blur-md border-b border-secondary transition-all duration-300",
-        isSearchVisible ? "max-h-[50vh] py-4 opacity-100" : "max-h-0 py-0 opacity-0 overflow-hidden"
-      )}>
-        <div className="max-w-7xl mx-auto px-4">
-          <form onSubmit={handleSearch} className="flex gap-2 mb-4">
-            <input 
-              type="text" 
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="ابحث عن الخدمات، المكتبة، أو المجلس..."
-              className="flex-grow bg-white/10 border-white/20 rounded-lg text-white px-4 py-2 focus:ring-secondary"
-            />
-            <button type="submit" className="bg-secondary text-primary px-4 rounded-lg font-bold">
-              بحث
-            </button>
-          </form>
-
-          {suggestions.length > 0 && (
-            <div className="space-y-2 animate-in fade-in slide-in-from-top-2 duration-300">
-              {suggestions.map((item, i) => (
-                <button
-                  key={i}
-                  onClick={() => handleSearch(null as any, item)}
-                  className="w-full text-right px-4 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold text-sm transition-colors"
-                >
-                  {item}
+      <AnimatePresence>
+        {isSearchVisible && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            className="lg:hidden absolute top-full left-0 w-full bg-primary border-b border-secondary overflow-hidden z-40"
+          >
+            <div className="max-w-7xl mx-auto px-4 py-4">
+              <form onSubmit={handleSearch} className="flex gap-2 mb-4">
+                <input 
+                  type="text" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="ابحث عن الخدمات، المكتبة، أو المجلس..."
+                  className="flex-grow bg-white/10 border-white/20 rounded-lg text-white px-4 py-2 focus:ring-secondary"
+                />
+                <button type="submit" className="bg-secondary text-primary px-4 rounded-lg font-bold">
+                  بحث
                 </button>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
+              </form>
 
-      {/* Mobile Menu */}
-      <div className={cn("lg:hidden bg-primary/98 backdrop-blur-lg border-t border-white/5 transition-all duration-500 ease-in-out overflow-hidden", isOpen ? "max-h-[80vh] opacity-100" : "max-h-0 opacity-0")}>
-        <div className="px-4 pt-4 pb-8 space-y-2">
-          {navLinks.map((link) => (
-            <div key={link.name}>
-              {link.dropdown ? (
-                <>
-                  <button 
-                    onClick={() => setServicesOpen(!servicesOpen)}
-                    className="w-full text-right px-4 py-3 flex justify-between items-center hover:bg-white/5 rounded-xl font-bold"
-                  >
-                    <span className="flex items-center gap-3 text-lg"><link.icon className="h-5 w-5 text-secondary" /> {link.name}</span>
-                    <ChevronDown className={cn("h-5 w-5 transition-transform duration-300", servicesOpen && "rotate-180")} />
-                  </button>
-                  <div className={cn("bg-white/5 rounded-xl mt-2 space-y-1 transition-all duration-300", servicesOpen ? "max-h-40 py-2" : "max-h-0 overflow-hidden")}>
-                    {link.dropdown.map((sub) => (
-                      <Link key={sub.name} to={sub.path} className="block px-12 py-3 text-base hover:text-secondary font-medium">
-                        {sub.name}
-                      </Link>
-                    ))}
-                  </div>
-                </>
-              ) : (
-                <Link to={link.path} className="block px-4 py-3 flex items-center gap-3 hover:bg-white/5 rounded-xl font-bold text-lg">
-                  <link.icon className={cn("h-5 w-5", location.pathname === link.path ? "text-secondary" : "text-secondary/70")} /> 
-                  <span className={cn(location.pathname === link.path && "text-secondary")}>{link.name}</span>
-                </Link>
+              {suggestions.length > 0 && (
+                <div className="space-y-2">
+                  {suggestions.map((item, i) => (
+                    <button
+                      key={i}
+                      onClick={() => handleSearch(null as any, item)}
+                      className="w-full text-right px-4 py-3 bg-white/5 hover:bg-white/10 text-white rounded-xl font-bold text-sm transition-colors"
+                    >
+                      {item}
+                    </button>
+                  ))}
+                </div>
               )}
             </div>
-          ))}
-        </div>
-      </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Mobile Menu */}
+      <AnimatePresence>
+        {isOpen && (
+          <motion.div
+            initial={{ height: 0, opacity: 0 }}
+            animate={{ height: 'auto', opacity: 1 }}
+            exit={{ height: 0, opacity: 0 }}
+            transition={{ duration: 0.4, ease: "circOut" }}
+            className="lg:hidden bg-primary/98 backdrop-blur-md border-t border-white/5 overflow-hidden"
+          >
+            <div className="px-4 pt-4 pb-8 space-y-2">
+              {navLinks.map((link) => (
+                <div key={link.name}>
+                  {link.dropdown ? (
+                    <>
+                      <button 
+                        onClick={() => setServicesOpen(!servicesOpen)}
+                        className="w-full text-right px-4 py-3 flex justify-between items-center hover:bg-white/5 rounded-xl font-bold transition-colors"
+                      >
+                        <span className="flex items-center gap-3 text-lg"><link.icon className="h-5 w-5 text-secondary" /> {link.name}</span>
+                        <ChevronDown className={cn("h-5 w-5 transition-transform duration-300", servicesOpen && "rotate-180")} />
+                      </button>
+                      <AnimatePresence>
+                        {servicesOpen && (
+                          <motion.div
+                            initial={{ height: 0, opacity: 0 }}
+                            animate={{ height: 'auto', opacity: 1 }}
+                            exit={{ height: 0, opacity: 0 }}
+                            className="bg-white/5 rounded-xl mt-2 overflow-hidden"
+                          >
+                            <div className="py-2 space-y-1">
+                              {link.dropdown.map((sub) => (
+                                <Link key={sub.name} to={sub.path} className="block px-12 py-3 text-base hover:text-secondary font-medium transition-colors">
+                                  {sub.name}
+                                </Link>
+                              ))}
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </>
+                  ) : (
+                    <Link to={link.path} className="block px-4 py-3 flex items-center gap-3 hover:bg-white/5 rounded-xl font-bold text-lg transition-colors">
+                      <link.icon className={cn("h-5 w-5", location.pathname === link.path ? "text-secondary" : "text-secondary/70")} /> 
+                      <span className={cn(location.pathname === link.path && "text-secondary")}>{link.name}</span>
+                    </Link>
+                  )}
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </nav>
   );
 };
