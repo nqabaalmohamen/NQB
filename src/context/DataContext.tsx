@@ -40,13 +40,21 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
+const safeParse = (key: string, fallback: any) => {
+  try {
+    const item = localStorage.getItem(key);
+    return item ? JSON.parse(item) : fallback;
+  } catch (e) {
+    console.error(`Error parsing localStorage key "${key}":`, e);
+    return fallback;
+  }
+};
+
 const loadInitialData = async () => {
   try {
-    // Try to fetch the latest data from GitHub first to ensure sync
-    const savedSettings = localStorage.getItem('siteSettings');
-    let settings = savedSettings ? JSON.parse(savedSettings) : initialSiteSettings;
+    // 1. Load basic settings first to get GitHub info
+    let settings = safeParse('siteSettings', initialSiteSettings);
 
-    // Critical fix: Ensure GitHub settings are recovered from dedicated keys if missing in siteSettings
     const ghToken = localStorage.getItem('gh_token');
     const ghRepo = localStorage.getItem('gh_repo');
     const ghOwner = localStorage.getItem('gh_owner');
@@ -55,66 +63,71 @@ const loadInitialData = async () => {
     if (ghRepo) settings.githubRepo = ghRepo;
     if (ghOwner) settings.githubOwner = ghOwner;
 
+    // 2. Try to fetch the latest data from GitHub
     if (settings.githubToken && settings.githubRepo && settings.githubOwner) {
-      const response = await fetch(
-        `https://raw.githubusercontent.com/${settings.githubOwner}/${settings.githubRepo}/main/src/data/data.json?t=${Date.now()}`
-      );
-      if (response.ok) {
-        const remoteData = await response.json();
+      try {
+        const response = await fetch(
+          `https://raw.githubusercontent.com/${settings.githubOwner}/${settings.githubRepo}/main/src/data/data.json?t=${Date.now()}`,
+          { cache: 'no-store' }
+        );
         
-        // Recover persistent GitHub settings from localStorage
-        const ghToken = localStorage.getItem('gh_token');
-        const ghRepo = localStorage.getItem('gh_repo');
-        const ghOwner = localStorage.getItem('gh_owner');
+        if (response.ok) {
+          const remoteData = await response.json();
+          
+          // Sync remote data to localStorage to prevent future white screens
+          if (remoteData.newsItems) localStorage.setItem('newsItems', JSON.stringify(remoteData.newsItems));
+          if (remoteData.carouselItems) localStorage.setItem('carouselItems', JSON.stringify(remoteData.carouselItems));
+          if (remoteData.councilMembers) localStorage.setItem('councilMembers', JSON.stringify(remoteData.councilMembers));
+          if (remoteData.libraryResources) localStorage.setItem('libraryResources', JSON.stringify(remoteData.libraryResources));
+          if (remoteData.forensicData) localStorage.setItem('forensicData', JSON.stringify(remoteData.forensicData));
+          if (remoteData.instituteData) localStorage.setItem('instituteData', JSON.stringify(remoteData.instituteData));
+          if (remoteData.siteSettings) localStorage.setItem('siteSettings', JSON.stringify(remoteData.siteSettings));
 
-        // Merge remote data with local secrets and preserve GitHub settings
-        const localMessages = localStorage.getItem('contactMessages');
-        return {
-          ...remoteData,
-          settings: {
-            ...remoteData.siteSettings,
-            // Prioritize local storage for GitHub info, fallback to remote data
-            githubToken: ghToken || remoteData.siteSettings.githubToken,
-            githubRepo: ghRepo || remoteData.siteSettings.githubRepo,
-            githubOwner: ghOwner || remoteData.siteSettings.githubOwner
-          },
-          messages: localMessages ? JSON.parse(localMessages) : remoteData.contactMessages || []
-        };
+          const localMessages = safeParse('contactMessages', []);
+          
+          return {
+            news: remoteData.newsItems || initialNewsItems,
+            carousel: remoteData.carouselItems || initialCarouselItems,
+            members: remoteData.councilMembers || initialCouncilMembers,
+            resources: remoteData.libraryResources || initialLibraryResources,
+            forensic: remoteData.forensicData || initialForensicData,
+            institute: remoteData.instituteData || initialInstituteData,
+            settings: {
+              ...(remoteData.siteSettings || initialSiteSettings),
+              githubToken: ghToken || (remoteData.siteSettings && remoteData.siteSettings.githubToken),
+              githubRepo: ghRepo || (remoteData.siteSettings && remoteData.siteSettings.githubRepo),
+              githubOwner: ghOwner || (remoteData.siteSettings && remoteData.siteSettings.githubOwner)
+            },
+            messages: localMessages
+          };
+        }
+      } catch (fetchError) {
+        console.error('Fetch from GitHub failed:', fetchError);
       }
     }
   } catch (e) {
-    console.error('Failed to sync with GitHub, using local data');
+    console.error('Critical error in loadInitialData:', e);
   }
 
-  const savedNews = localStorage.getItem('newsItems');
-  const savedCarousel = localStorage.getItem('carouselItems');
-  const savedMembers = localStorage.getItem('councilMembers');
-  const savedResources = localStorage.getItem('libraryResources');
-  const savedForensic = localStorage.getItem('forensicData');
-  const savedInstitute = localStorage.getItem('instituteData');
-  const savedSettings = localStorage.getItem('siteSettings');
-  const savedMessages = localStorage.getItem('contactMessages');
-
-  let finalSettings = savedSettings ? JSON.parse(savedSettings) : initialSiteSettings;
-  
-  // Apply persistent GitHub settings even if siteSettings was overwritten or empty
+  // 3. Fallback to localStorage or Initial Data if GitHub fetch fails
   const ghTokenFinal = localStorage.getItem('gh_token');
   const ghRepoFinal = localStorage.getItem('gh_repo');
   const ghOwnerFinal = localStorage.getItem('gh_owner');
 
+  let finalSettings = safeParse('siteSettings', initialSiteSettings);
   if (ghTokenFinal) finalSettings.githubToken = ghTokenFinal;
   if (ghRepoFinal) finalSettings.githubRepo = ghRepoFinal;
   if (ghOwnerFinal) finalSettings.githubOwner = ghOwnerFinal;
 
   return {
-    news: savedNews ? JSON.parse(savedNews) : initialNewsItems,
-    carousel: savedCarousel ? JSON.parse(savedCarousel) : initialCarouselItems,
-    members: savedMembers ? JSON.parse(savedMembers) : initialCouncilMembers,
-    resources: savedResources ? JSON.parse(savedResources) : initialLibraryResources,
-    forensic: savedForensic ? JSON.parse(savedForensic) : initialForensicData,
-    institute: savedInstitute ? JSON.parse(savedInstitute) : initialInstituteData,
+    news: safeParse('newsItems', initialNewsItems),
+    carousel: safeParse('carouselItems', initialCarouselItems),
+    members: safeParse('councilMembers', initialCouncilMembers),
+    resources: safeParse('libraryResources', initialLibraryResources),
+    forensic: safeParse('forensicData', initialForensicData),
+    institute: safeParse('instituteData', initialInstituteData),
     settings: finalSettings,
-    messages: savedMessages ? JSON.parse(savedMessages) : [],
+    messages: safeParse('contactMessages', []),
   };
 };
 
