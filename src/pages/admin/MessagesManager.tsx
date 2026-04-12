@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Mail, Trash2, Check, Clock, User, FileText, MessageSquare } from 'lucide-react';
 import { useData } from '../../context/DataContext';
+import Linkify from '../../components/Linkify';
 
 const MessagesManager = () => {
   const { messages, updateMessages } = useData();
@@ -83,7 +84,9 @@ const MessagesManager = () => {
                     <h4 className="font-bold text-primary mb-2 flex items-center gap-2">
                       <Mail className="h-4 w-4" /> {msg.subject || 'بدون عنوان'}
                     </h4>
-                    <p className="text-gray-600 leading-relaxed text-sm whitespace-pre-wrap">{msg.message}</p>
+                    <p className="text-gray-600 leading-relaxed text-sm whitespace-pre-wrap">
+                      <Linkify text={msg.message} />
+                    </p>
                     {msg.email && (
                       <div className="mt-4 pt-4 border-t border-gray-200 text-xs">
                         <span className="text-gray-400">البريد الإلكتروني للرد: </span>

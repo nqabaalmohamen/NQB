@@ -3,6 +3,7 @@ import { Plus, Trash2, Edit2, Save, X, Newspaper, Calendar, Image as ImageIcon, 
 import { handleImageUpload } from '../../lib/imageUtils';
 import { useData } from '../../context/DataContext';
 import { NewsItem } from '../../data/store';
+import Linkify from '../../components/Linkify';
 
 const NewsManager = () => {
   const { news: items, updateNews, publishToGithub, isPublishing } = useData();
@@ -219,7 +220,9 @@ const NewsManager = () => {
                   <Calendar className="h-4 w-4" />
                   <span>{item.date}</span>
                 </div>
-                <p className="text-gray-600 text-sm line-clamp-2 leading-relaxed">{item.content}</p>
+                <div className="text-gray-600 text-sm line-clamp-2 leading-relaxed">
+                  <Linkify text={item.content} />
+                </div>
               </div>
             </div>
           ))}

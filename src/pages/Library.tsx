@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search, Download, FileText, Scale, Filter, Eye, X, Book } from 'lucide-react';
 import { useData } from '../context/DataContext';
+import Linkify from '../components/Linkify';
 
 // Helper to normalize Arabic text for better searching
 const normalizeArabic = (text: string) => {
@@ -187,7 +188,7 @@ const Library = () => {
               <button onClick={() => setReadingDoc(null)} className="p-2 hover:bg-gray-200 rounded-full transition-colors"><X className="h-6 w-6" /></button>
             </div>
             <div className="p-8 lg:p-12 overflow-y-auto bg-gray-50 flex-grow text-right leading-relaxed text-gray-700 whitespace-pre-wrap font-serif text-lg">
-              {readingDoc.content}
+              <Linkify text={readingDoc.content} />
             </div>
             <div className="p-6 border-t bg-white flex justify-end gap-4">
               <button onClick={() => setReadingDoc(null)} className="px-8 py-3 bg-gray-100 text-gray-600 font-bold rounded-xl hover:bg-gray-200 transition-all">إغلاق</button>

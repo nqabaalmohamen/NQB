@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ShieldCheck, FileText, AlertCircle, CheckCircle } from 'lucide-react';
 import { useData } from '../context/DataContext';
+import Linkify from '../components/Linkify';
 
 const Forensic = () => {
   const { forensic: data } = useData();
@@ -14,13 +15,15 @@ const Forensic = () => {
           </div>
           <h1 className="text-4xl font-serif mb-6">{data.title}</h1>
           <p className="text-gray-600 leading-relaxed mb-8">
-            {data.description}
+            <Linkify text={data.description} />
           </p>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {data.services.map((service) => (
               <div key={service.id} className="flex items-center gap-3 bg-white p-4 rounded-xl shadow-sm">
                 <CheckCircle className="h-5 w-5 text-green-500" />
-                <span className="font-medium">{service.title}</span>
+                <span className="font-medium">
+                  <Linkify text={service.title} />
+                </span>
               </div>
             ))}
           </div>
@@ -42,7 +45,9 @@ const Forensic = () => {
         </div>
         <ul className="list-disc list-inside space-y-4 text-gray-300">
           {data.instructions.map((instr, idx) => (
-            <li key={idx}>{instr}</li>
+            <li key={idx}>
+              <Linkify text={instr} />
+            </li>
           ))}
         </ul>
       </div>

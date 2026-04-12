@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { ShieldCheck, GraduationCap, BookOpen, Newspaper, Bell } from 'lucide-react';
 import ImageCarousel from '../components/ImageCarousel';
 import { useData } from '../context/DataContext';
+import Linkify from '../components/Linkify';
 
 const Home = () => {
   const { news } = useData();
@@ -30,7 +31,9 @@ const Home = () => {
                 <item.icon className="h-8 w-8 text-primary" />
               </div>
               <h3 className="text-xl font-bold mb-3">{item.title}</h3>
-              <p className="text-gray-600 text-sm leading-relaxed">{item.desc}</p>
+              <div className="text-gray-600 text-sm leading-relaxed">
+                <Linkify text={item.desc} />
+              </div>
             </motion.div>
           ))}
         </div>
@@ -64,9 +67,9 @@ const Home = () => {
                 <h4 className="font-bold text-lg mb-3 group-hover:text-secondary transition-colors line-clamp-2">
                   {item.title}
                 </h4>
-                <p className="text-gray-600 text-sm line-clamp-2">
-                  {item.content}
-                </p>
+                <div className="text-gray-600 text-sm line-clamp-3">
+                  <Linkify text={item.content} />
+                </div>
               </div>
             </div>
           ))}

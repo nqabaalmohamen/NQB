@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { GraduationCap, Calendar, Users, Award, BookOpen, ListChecks } from 'lucide-react';
 import { useData } from '../context/DataContext';
+import Linkify from '../components/Linkify';
 
 const Institute = () => {
   const { institute: data } = useData();
@@ -11,7 +12,7 @@ const Institute = () => {
         <h1 className="text-4xl font-serif mb-4">{data.title}</h1>
         <div className="w-24 h-1 bg-secondary mx-auto mb-6"></div>
         <p className="text-gray-600 max-w-3xl mx-auto">
-          {data.description}
+          <Linkify text={data.description} />
         </p>
       </div>
 
@@ -35,7 +36,9 @@ const Institute = () => {
             {data.features.map((feat, idx) => (
               <div key={idx} className="flex items-center gap-4 p-4 bg-accent rounded-xl">
                 <div className="h-2 w-2 bg-secondary rounded-full shrink-0"></div>
-                <p className="font-bold text-primary">{feat}</p>
+                <p className="font-bold text-primary">
+                  <Linkify text={feat} />
+                </p>
               </div>
             ))}
           </div>
@@ -49,7 +52,9 @@ const Institute = () => {
             {data.requirements.map((req, idx) => (
               <li key={idx} className="flex items-start gap-3">
                 <div className="h-2 w-2 bg-secondary rounded-full mt-2 shrink-0"></div>
-                <span>{req}</span>
+                <span>
+                  <Linkify text={req} />
+                </span>
               </li>
             ))}
           </ul>
