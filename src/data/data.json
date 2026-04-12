@@ -5,6 +5,7 @@
     "contactPhone": "0105099530",
     "address": "الفيوم - شارع المحكمة - مبنى نقابة المحامين",
     "footerText": "جميع الحقوق محفوظة © 2026 نقابة المحامين بالفيوم",
+    "maintenanceMode": false,
     "githubRepo": "NQB",
     "githubOwner": "nqabaalmohamen"
   },

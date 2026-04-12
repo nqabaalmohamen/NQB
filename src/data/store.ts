@@ -66,10 +66,6 @@ export interface SiteSettings {
   githubRepo?: string;
   githubOwner?: string;
 }
-  isUnderMaintenance?: boolean;
-  maintenanceMessage?: string;
-  maintenanceFinishDate?: string;
-}
 
 export const initialSiteSettings: SiteSettings = initialData.siteSettings;
 export const initialCarouselItems: CarouselItem[] = initialData.carouselItems;
