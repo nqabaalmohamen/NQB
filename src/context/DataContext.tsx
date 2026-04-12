@@ -25,6 +25,7 @@ interface DataContextType {
   institute: InstituteData;
   settings: SiteSettings;
   messages: any[];
+  isPublishing: boolean;
   
   updateNews: (items: NewsItem[]) => void;
   updateCarousel: (items: CarouselItem[]) => void;
@@ -141,6 +142,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     institute: initialInstituteData,
     settings: initialSiteSettings,
     messages: [],
+    isPublishing: false,
   });
 
   useEffect(() => {
@@ -160,11 +162,18 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   const publishToGithub = async (customData?: any) => {
+    if (state.isPublishing) {
+      console.warn('Publishing already in progress');
+      return false;
+    }
+
     const settings = state.settings;
     if (!settings.githubToken || !settings.githubRepo || !settings.githubOwner) {
       console.error('GitHub settings are missing');
       return false;
     }
+
+    setState(prev => ({ ...prev, isPublishing: true }));
 
     try {
       // Security: Only exclude the Token from being published to GitHub.
@@ -185,13 +194,22 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const content = btoa(unescape(encodeURIComponent(JSON.stringify(dataToPublish, null, 2))));
       const path = 'src/data/data.json';
       
+      // Log payload size for debugging
+      const sizeInMB = (content.length * 0.75) / (1024 * 1024);
+      console.log(`Publishing payload size: ~${sizeInMB.toFixed(2)} MB`);
+
+      if (sizeInMB > 20) {
+        throw new Error('حجم البيانات كبير جداً (أكثر من 20 ميجابايت). يرجى تقليل عدد الصور أو حجمها.');
+      }
+
       // Get the SHA of the current file first
       const getFileResponse = await fetch(
         `https://api.github.com/repos/${settings.githubOwner}/${settings.githubRepo}/contents/${path}`,
         {
           headers: {
             'Authorization': `token ${settings.githubToken}`,
-            'Accept': 'application/vnd.github.v3+json'
+            'Accept': 'application/vnd.github.v3+json',
+            'Cache-Control': 'no-cache'
           }
         }
       );
@@ -200,36 +218,65 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (getFileResponse.ok) {
         const fileData = await getFileResponse.json();
         sha = fileData.sha;
-      }
-
-      // Update the file
-      const updateResponse = await fetch(
-        `https://api.github.com/repos/${settings.githubOwner}/${settings.githubRepo}/contents/${path}`,
-        {
-          method: 'PUT',
-          headers: {
-            'Authorization': `token ${settings.githubToken}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            message: `Update site data from admin panel ${new Date().toLocaleString()}`,
-            content: content,
-            sha: sha
-          })
-        }
-      );
-
-      if (updateResponse.ok) {
-        console.log('Published to GitHub successfully');
-        return true;
+      } else if (getFileResponse.status === 404) {
+        console.warn('File not found on GitHub, will create a new one');
       } else {
-        const errorData = await updateResponse.json();
-        console.error('GitHub API Error:', errorData);
-        return false;
+        const errorData = await getFileResponse.json();
+        throw new Error(`فشل الحصول على معلومات الملف من GitHub: ${errorData.message}`);
       }
-    } catch (error) {
+
+      // Update the file with a timeout
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 seconds timeout
+
+      try {
+        const updateResponse = await fetch(
+          `https://api.github.com/repos/${settings.githubOwner}/${settings.githubRepo}/contents/${path}`,
+          {
+            method: 'PUT',
+            headers: {
+              'Authorization': `token ${settings.githubToken}`,
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              message: `Update site data from admin panel ${new Date().toLocaleString()}`,
+              content: content,
+              sha: sha
+            }),
+            signal: controller.signal
+          }
+        );
+
+        clearTimeout(timeoutId);
+
+        if (updateResponse.ok) {
+          console.log('Published to GitHub successfully');
+          return true;
+        } else {
+          const errorData = await updateResponse.json();
+          console.error('GitHub API Error:', errorData);
+          
+          let errorMsg = errorData.message || 'خطأ غير معروف';
+          if (updateResponse.status === 401) errorMsg = 'التوكن غير صالح أو انتهت صلاحيته';
+          if (updateResponse.status === 404) errorMsg = 'المستودع غير موجود أو لا يملك التوكن صلاحية الوصول إليه';
+          if (updateResponse.status === 413) errorMsg = 'حجم الملف كبير جداً بالنسبة لـ GitHub API';
+          if (updateResponse.status === 409) errorMsg = 'حدث تعارض في النسخ (Conflict)، يرجى إعادة المحاولة';
+
+          throw new Error(errorMsg);
+        }
+      } catch (err: any) {
+        if (err.name === 'AbortError') {
+          throw new Error('انتهت مهلة الاتصال بـ GitHub. قد يكون حجم البيانات كبيراً جداً أو سرعة الإنترنت ضعيفة.');
+        }
+        throw err;
+      }
+    } catch (error: any) {
       console.error('Publish error:', error);
+      // Pass the error message back to the UI
+      alert(`فشل النشر: ${error.message}`);
       return false;
+    } finally {
+      setState(prev => ({ ...prev, isPublishing: false }));
     }
   };
 

@@ -4,7 +4,7 @@ import { handleImageUpload } from '../../lib/imageUtils';
 import { useData } from '../../context/DataContext';
 
 const InstituteManager = () => {
-  const { institute: data, updateInstitute, publishToGithub } = useData();
+  const { institute: data, updateInstitute, publishToGithub, isPublishing } = useData();
   const [localData, setLocalData] = useState(data);
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -18,15 +18,9 @@ const InstituteManager = () => {
     try {
       updateInstitute(localData);
       // Directly sync with GitHub
-      const success = await publishToGithub();
-      if (success) {
-        alert('تم حفظ كافة التعديلات ونشرها على الموقع بنجاح');
-      } else {
-        alert('تم حفظ التعديلات محلياً، ولكن فشل النشر على GitHub. يرجى التحقق من الإعدادات.');
-      }
+      await publishToGithub();
     } catch (error) {
       console.error('Error saving:', error);
-      alert('حدث خطأ أثناء الحفظ');
     } finally {
       setSaving(false);
     }
@@ -86,10 +80,10 @@ const InstituteManager = () => {
           </div>
           <button
             onClick={handleSave}
-            disabled={saving || uploading}
-            className={`bg-primary text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-primary/90 transition-all shadow-md ${(saving || uploading) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            disabled={saving || uploading || isPublishing}
+            className={`bg-primary text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-primary/90 transition-all shadow-md ${(saving || uploading || isPublishing) ? 'opacity-50 cursor-not-allowed' : ''}`}
           >
-            {saving ? (
+            {(saving || isPublishing) ? (
               <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
             ) : (
               <Save className="h-5 w-5" />

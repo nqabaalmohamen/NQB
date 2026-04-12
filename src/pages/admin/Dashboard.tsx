@@ -38,7 +38,8 @@ const Dashboard = () => {
     settings, 
     messages, 
     clearAllData,
-    publishToGithub 
+    publishToGithub,
+    isPublishing: globalPublishing 
   } = useData();
   const [publishing, setPublishing] = useState(false);
   const [publishStatus, setPublishStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
@@ -51,6 +52,8 @@ const Dashboard = () => {
   ];
 
   const handlePublish = async () => {
+    if (globalPublishing) return;
+    
     if (!settings.githubToken || !settings.githubRepo || !settings.githubOwner) {
       alert('يرجى ضبط إعدادات GitHub في صفحة الإعدادات العامة أولاً لتتمكن من النشر');
       navigate('/admin/settings');
@@ -64,14 +67,12 @@ const Dashboard = () => {
       const success = await publishToGithub();
       if (success) {
         setPublishStatus('success');
-        alert('تم نشر التعديلات بنجاح! سيستغرق ظهورها للجميع بضع دقائق.');
       } else {
-        throw new Error('فشل النشر على GitHub');
+        setPublishStatus('error');
       }
     } catch (error: any) {
       console.error('Publish error:', error);
       setPublishStatus('error');
-      alert('حدث خطأ أثناء النشر. يرجى التحقق من إعدادات GitHub.');
     } finally {
       setPublishing(false);
       setTimeout(() => setPublishStatus('idle'), 5000);
@@ -197,14 +198,14 @@ const Dashboard = () => {
               </div>
               <button 
                 onClick={handlePublish}
-                disabled={publishing}
+                disabled={publishing || globalPublishing}
                 className={`w-full py-4 rounded-2xl font-bold flex items-center justify-center gap-3 transition-all shadow-lg ${
                   publishStatus === 'success' 
                   ? 'bg-white text-green-600' 
                   : 'bg-secondary text-primary hover:bg-white'
                 }`}
               >
-                {publishing ? (
+                {(publishing || globalPublishing) ? (
                   <RefreshCw className="h-6 w-6 animate-spin" />
                 ) : publishStatus === 'success' ? (
                   <CheckCircle2 className="h-6 w-6" />
@@ -212,7 +213,7 @@ const Dashboard = () => {
                   <CloudUpload className="h-6 w-6" />
                 )}
                 <span>
-                  {publishing ? 'جاري النشر...' : publishStatus === 'success' ? 'تم النشر بنجاح' : 'انشر الموقع للجميع الآن'}
+                  {(publishing || globalPublishing) ? 'جاري النشر...' : publishStatus === 'success' ? 'تم النشر بنجاح' : 'انشر الموقع للجميع الآن'}
                 </span>
               </button>
             </div>

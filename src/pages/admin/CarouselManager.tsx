@@ -5,7 +5,7 @@ import { useData } from '../../context/DataContext';
 import { CarouselItem } from '../../data/store';
 
 const CarouselManager = () => {
-  const { carousel: items, updateCarousel, publishToGithub } = useData();
+  const { carousel: items, updateCarousel, publishToGithub, isPublishing } = useData();
   const [isEditing, setIsEditing] = useState<number | null>(null);
   const [editForm, setEditForm] = useState<CarouselItem | null>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -17,15 +17,9 @@ const CarouselManager = () => {
     try {
       updateCarousel(newItems);
       // Directly sync with GitHub
-      const success = await publishToGithub();
-      if (success) {
-        alert('تم حفظ التعديلات ونشرها على الموقع بنجاح');
-      } else {
-        alert('تم حفظ التعديلات محلياً، ولكن فشل النشر على GitHub. يرجى التحقق من الإعدادات.');
-      }
+      await publishToGithub();
     } catch (error) {
       console.error('Error saving:', error);
-      alert('حدث خطأ أثناء الحفظ');
     } finally {
       setSaving(false);
     }
@@ -153,10 +147,10 @@ const CarouselManager = () => {
             <div className="flex gap-4 mt-8">
               <button
                 onClick={isAdding ? handleAdd : handleSaveEdit}
-                disabled={saving || uploading}
-                className={`bg-green-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-green-700 transition-all shadow-md ${(saving || uploading) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                disabled={saving || uploading || isPublishing}
+                className={`bg-green-600 text-white px-8 py-3 rounded-xl font-bold flex items-center gap-2 hover:bg-green-700 transition-all shadow-md ${(saving || uploading || isPublishing) ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
-                {saving ? (
+                {(saving || isPublishing) ? (
                   <div className="animate-spin h-5 w-5 border-2 border-white border-t-transparent rounded-full" />
                 ) : (
                   <Save className="h-5 w-5" />
