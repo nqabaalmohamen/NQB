@@ -14,8 +14,8 @@ export const handleImageUpload = (file: File): Promise<string> => {
         let width = img.width;
         let height = img.height;
 
-        // Optimization: Max dimensions 1600px for high quality but smaller size
-        const MAX_SIZE = 1600;
+        // Optimization: Max dimensions 1200px for good quality but small size
+        const MAX_SIZE = 1200;
 
         if (width > height) {
           if (width > MAX_SIZE) {
@@ -39,13 +39,13 @@ export const handleImageUpload = (file: File): Promise<string> => {
           return;
         }
 
-        // Use a white background (especially for PNGs with transparency)
+        // Use a white background
         ctx.fillStyle = '#FFFFFF';
         ctx.fillRect(0, 0, width, height);
         ctx.drawImage(img, 0, 0, width, height);
         
-        // JPEG format with 0.8 quality is a good balance for text and photos
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        // Quality 0.6 is optimal for mobile devices and fast publishing
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.6);
         resolve(dataUrl);
       };
       img.onerror = () => {

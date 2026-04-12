@@ -251,22 +251,33 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const content = btoa(unescape(encodeURIComponent(JSON.stringify(dataToPublish, null, 2))));
       const path = 'src/data/data.json';
       
+      // Calculate size for logging
+      const sizeInMB = (content.length * 0.75) / (1024 * 1024);
+      console.log(`Publishing data size: ${sizeInMB.toFixed(2)} MB`);
+
       const encOwner = encodeURIComponent(owner);
       const encRepo = encodeURIComponent(repo);
       const apiUrl = `https://api.github.com/repos/${encOwner}/${encRepo}/contents/${path}`;
 
-      // 1. Fetch current file info (SHA)
+      // 1. Fetch current file info (SHA) - Increased timeout
+      const controllerSHA = new AbortController();
+      const timeoutSHA = setTimeout(() => controllerSHA.abort(), 60000);
+
       const getFileResponse = await fetch(apiUrl, {
         headers: {
           'Authorization': `token ${token}`,
           'Accept': 'application/vnd.github.v3+json'
         },
         mode: 'cors',
-        cache: 'no-store'
+        cache: 'no-store',
+        signal: controllerSHA.signal
       }).catch(err => {
+        if (err.name === 'AbortError') throw new Error('فشل الحصول على بيانات المستودع (انتهت المهلة).');
         console.error('Fetch Error Detail:', err);
-        throw new Error(`تعذر الاتصال بـ GitHub. يرجى التأكد من جودة الإنترنت وعدم وجود إضافات بالمتصفح تمنع الاتصال.\n(التفاصيل: ${err.message})`);
+        throw new Error(`تعذر الاتصال بـ GitHub. يرجى التأكد من جودة الإنترنت.\n(التفاصيل: ${err.message})`);
       });
+
+      clearTimeout(timeoutSHA);
 
       let sha = '';
       if (getFileResponse.ok) {
@@ -281,9 +292,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         throw new Error(`خطأ من GitHub (${getFileResponse.status}): ${errData.message || 'فشل الاتصال'}`);
       }
 
-      // 2. Push Update
+      // 2. Push Update - Increased timeout to 120 seconds
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000);
+      const timeoutId = setTimeout(() => controller.abort(), 120000);
 
       try {
         const updateResponse = await fetch(apiUrl, {
@@ -312,7 +323,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       } catch (err: any) {
         if (err.name === 'AbortError') {
-          throw new Error('انتهت مهلة الاتصال. حجم البيانات كبير جداً أو سرعة الإنترنت ضعيفة.');
+          throw new Error('انتهت مهلة الرفع (2 دقيقة). حجم البيانات كبير جداً أو سرعة الرفع ضعيفة جداً.');
         }
         throw err;
       }
