@@ -9,13 +9,13 @@ const Home = () => {
   const { news } = useData();
 
   return (
-    <div className="flex flex-col gap-16 pb-20">
+    <div className="flex flex-col gap-10 md:gap-16 pb-20 overflow-x-hidden">
       {/* Image Carousel Section */}
       <ImageCarousel />
 
       {/* Quick Access Cards */}
-      <section className="max-w-7xl mx-auto px-4 w-full -mt-24 relative z-20">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <section className="max-w-7xl mx-auto px-4 w-full -mt-16 md:-mt-24 relative z-20">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {[
             { title: 'الطب الشرعي', icon: ShieldCheck, desc: 'خدمات التنسيق مع مصلحة الطب الشرعي والتقارير الفنية.' },
             { title: 'معهد المحاماة', icon: GraduationCap, desc: 'البرامج التدريبية والدورات المتخصصة للمحامين الجدد.' },

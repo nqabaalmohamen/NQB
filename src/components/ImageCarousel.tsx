@@ -47,14 +47,14 @@ const ImageCarousel: React.FC = () => {
   if (carouselItems.length === 0) return null;
 
   return (
-    <div className="relative w-full h-[650px] overflow-hidden group">
+    <div className="relative w-full h-[400px] md:h-[500px] lg:h-[550px] overflow-hidden group">
       <AnimatePresence initial={false} mode="wait">
         <motion.div
           key={currentIndex}
-          initial={{ opacity: 0, scale: 1.1 }}
+          initial={{ opacity: 0, scale: 1.05 }}
           animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.95 }}
-          transition={{ duration: 1.2, ease: "easeOut" }}
+          exit={{ opacity: 0, scale: 0.98 }}
+          transition={{ duration: 1, ease: "easeInOut" }}
           className="absolute inset-0"
         >
           <img
@@ -63,54 +63,54 @@ const ImageCarousel: React.FC = () => {
             className="w-full h-full object-cover"
             referrerPolicy="no-referrer"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/40 to-transparent pointer-events-none"></div>
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent pointer-events-none"></div>
           
-          <div className="absolute inset-0 flex items-center justify-center text-center text-white px-4">
+          <div className="absolute inset-0 flex items-end justify-center text-center text-white pb-20 md:pb-24 px-4">
             <motion.div
-              initial={{ opacity: 0, y: 40 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.8, delay: 0.4 }}
-              className="max-w-5xl"
+              transition={{ duration: 0.7, delay: 0.3 }}
+              className="max-w-4xl w-full"
             >
               <motion.span 
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
-                transition={{ delay: 0.6 }}
-                className="inline-block px-4 py-1 bg-secondary text-primary font-bold rounded-full mb-6 text-sm tracking-wider"
+                transition={{ delay: 0.5 }}
+                className="inline-block px-3 py-1 bg-secondary text-primary font-bold rounded-full mb-4 text-xs md:text-sm tracking-wider shadow-lg"
               >
                 آخر الأخبار والتحديثات
               </motion.span>
-              <h2 className="text-5xl md:text-7xl font-serif mb-8 leading-tight drop-shadow-2xl">
+              <h2 className="text-2xl md:text-4xl lg:text-5xl font-serif font-bold mb-6 leading-tight drop-shadow-2xl">
                 {carouselItems[currentIndex].title}
               </h2>
               <Link
                 to={carouselItems[currentIndex].link}
-                className="bg-white text-primary font-bold px-10 py-4 rounded-xl hover:bg-secondary hover:text-primary transition-all shadow-2xl inline-flex items-center justify-center text-lg group/btn"
+                className="bg-white text-primary font-bold px-6 py-2.5 md:px-10 md:py-3.5 rounded-xl hover:bg-secondary hover:text-primary transition-all shadow-xl inline-flex items-center justify-center text-sm md:text-lg group/btn active:scale-95"
               >
                 اقرأ التفاصيل الكاملة
-                <ChevronLeft className="mr-2 h-5 w-5 group-hover/btn:-translate-x-1 transition-transform" />
+                <ChevronLeft className="mr-2 h-4 w-4 md:h-5 md:w-5 group-hover/btn:-translate-x-1 transition-transform" />
               </Link>
             </motion.div>
           </div>
         </motion.div>
       </AnimatePresence>
 
-      {/* Navigation Buttons - More Professional */}
+      {/* Navigation Buttons - More Responsive */}
       <button
         onClick={goToPrevious}
-        className="absolute top-1/2 right-6 -translate-y-1/2 bg-white/10 hover:bg-secondary hover:text-primary text-white p-4 rounded-2xl z-30 transition-all backdrop-blur-md border border-white/20 opacity-0 group-hover:opacity-100"
+        className="absolute top-1/2 right-2 md:right-6 -translate-y-1/2 bg-white/10 hover:bg-secondary hover:text-primary text-white p-2 md:p-4 rounded-xl md:rounded-2xl z-30 transition-all backdrop-blur-md border border-white/20 opacity-0 group-hover:opacity-100 hidden md:flex"
       >
-        <ChevronRight className="h-8 w-8" />
+        <ChevronRight className="h-6 w-6 md:h-8 md:w-8" />
       </button>
       <button
         onClick={goToNext}
-        className="absolute top-1/2 left-6 -translate-y-1/2 bg-white/10 hover:bg-secondary hover:text-primary text-white p-4 rounded-2xl z-30 transition-all backdrop-blur-md border border-white/20 opacity-0 group-hover:opacity-100"
+        className="absolute top-1/2 left-2 md:left-6 -translate-y-1/2 bg-white/10 hover:bg-secondary hover:text-primary text-white p-2 md:p-4 rounded-xl md:rounded-2xl z-30 transition-all backdrop-blur-md border border-white/20 opacity-0 group-hover:opacity-100 hidden md:flex"
       >
-        <ChevronLeft className="h-8 w-8" />
+        <ChevronLeft className="h-6 w-6 md:h-8 md:w-8" />
       </button>
 
-      {/* Circular Progress Indicators */}
-      <div className="absolute bottom-10 left-1/2 -translate-x-1/2 flex gap-6 z-30 items-center">
+      {/* Circular Progress Indicators - Compact for Mobile */}
+      <div className="absolute bottom-6 md:bottom-10 left-1/2 -translate-x-1/2 flex gap-3 md:gap-6 z-30 items-center">
         {carouselItems.map((_, idx) => (
           <button
             key={idx}
@@ -118,36 +118,36 @@ const ImageCarousel: React.FC = () => {
               setCurrentIndex(idx);
               setProgress(0);
             }}
-            className="relative flex items-center justify-center"
+            className="relative flex items-center justify-center scale-75 md:scale-100"
           >
             {/* Background Circle */}
-            <svg className="h-12 w-12 transform -rotate-90">
+            <svg className="h-10 w-10 md:h-12 md:w-12 transform -rotate-90">
               <circle
-                cx="24"
-                cy="24"
-                r="20"
+                cx="20"
+                cy="20"
+                r="16"
                 stroke="currentColor"
                 strokeWidth="2"
                 fill="transparent"
-                className="text-white/20"
+                className="text-white/20 md:cx-24 md:cy-24 md:r-20"
               />
               {/* Progress Circle */}
               {currentIndex === idx && (
                 <circle
-                  cx="24"
-                  cy="24"
-                  r="20"
+                  cx="20"
+                  cy="20"
+                  r="16"
                   stroke="currentColor"
                   strokeWidth="3"
                   fill="transparent"
-                  strokeDasharray={125.6}
-                  strokeDashoffset={125.6 - (125.6 * progress) / 100}
-                  className="text-secondary transition-all duration-50"
+                  strokeDasharray={100.5}
+                  strokeDashoffset={100.5 - (100.5 * progress) / 100}
+                  className="text-secondary transition-all duration-50 md:cx-24 md:cy-24 md:r-20 md:strokeDasharray-125.6 md:strokeDashoffset-125.6"
                   strokeLinecap="round"
                 />
               )}
             </svg>
-            <span className={`absolute text-xs font-bold ${currentIndex === idx ? 'text-secondary' : 'text-white/60'}`}>
+            <span className={`absolute text-[10px] md:text-xs font-bold ${currentIndex === idx ? 'text-secondary' : 'text-white/60'}`}>
               {idx + 1}
             </span>
           </button>

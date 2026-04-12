@@ -110,16 +110,20 @@ const Navbar = () => {
       <div className="w-full mx-auto px-4 sm:px-6 lg:px-12">
         <div className="flex flex-row justify-between h-24 items-center">
           {/* Logo Section - Right side in RTL */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="bg-primary text-white p-2 rounded-xl border border-white/10 shadow-inner group-hover:scale-110 transition-transform">
-              <Scale className="h-7 w-7 text-secondary" />
+          <Link to="/" className="flex items-center gap-2 md:gap-4 group">
+            <div className="bg-primary text-white p-1.5 md:p-2.5 rounded-xl border border-white/10 shadow-inner group-hover:scale-110 transition-transform">
+              <Scale className="h-6 w-6 md:h-9 md:w-9 text-secondary" />
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-serif font-bold text-white tracking-tight leading-none">{mainName}</span>
+              <span className="text-xl md:text-3xl font-serif font-bold text-white tracking-tight leading-none whitespace-nowrap">
+                {mainName}
+              </span>
               {subName && (
                 <div className="flex items-center w-full gap-2 mt-1">
                   <div className="h-[1px] flex-grow bg-secondary/30"></div>
-                  <span className="text-[10px] font-bold text-secondary uppercase tracking-[0.2em]">{subName}</span>
+                  <span className="text-[10px] md:text-xs font-bold text-secondary uppercase tracking-[0.15em] md:tracking-[0.25em] whitespace-nowrap">
+                    {subName}
+                  </span>
                   <div className="h-[1px] flex-grow bg-secondary/30"></div>
                 </div>
               )}
