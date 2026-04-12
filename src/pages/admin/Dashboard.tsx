@@ -67,6 +67,15 @@ const Dashboard = () => {
       const success = await publishToGithub();
       if (success) {
         setPublishStatus('success');
+        // Clear local storage overrides after successful publish to sync with remote
+        const keysToClear = [
+          'newsItems', 'carouselItems', 'councilMembers', 
+          'libraryResources', 'forensicData', 'instituteData'
+        ];
+        keysToClear.forEach(key => localStorage.removeItem(key));
+        
+        // Force reload data from GitHub
+        window.location.reload();
       } else {
         setPublishStatus('error');
       }

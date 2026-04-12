@@ -152,13 +152,21 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     };
     init();
 
-    const syncWithStorage = async () => {
-      const data = await loadInitialData();
-      setState(data);
+    // Listen for changes from other tabs
+    const handleStorageChange = (e: StorageEvent) => {
+      if (e.key === 'carouselItems' || e.key === 'newsItems' || e.key === 'siteSettings' || 
+          e.key === 'councilMembers' || e.key === 'forensicData' || e.key === 'libraryResources' || 
+          e.key === 'instituteData') {
+        const initReload = async () => {
+          const data = await loadInitialData();
+          setState(data);
+        };
+        initReload();
+      }
     };
 
-    window.addEventListener('storage', syncWithStorage);
-    return () => window.removeEventListener('storage', syncWithStorage);
+    window.addEventListener('storage', handleStorageChange);
+    return () => window.removeEventListener('storage', handleStorageChange);
   }, []);
 
   const publishToGithub = async (customData?: any) => {
