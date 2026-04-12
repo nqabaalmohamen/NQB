@@ -167,21 +167,36 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       return false;
     }
 
-    const settings = state.settings;
+    if (!navigator.onLine) {
+      alert('لا يوجد اتصال بالإنترنت. يرجى التأكد من اتصالك وإعادة المحاولة.');
+      return false;
+    }
+
+    const settings = {
+      githubToken: state.settings.githubToken?.trim(),
+      githubRepo: state.settings.githubRepo?.trim(),
+      githubOwner: state.settings.githubOwner?.trim(),
+    };
+
     if (!settings.githubToken || !settings.githubRepo || !settings.githubOwner) {
       console.error('GitHub settings are missing');
+      alert('إعدادات GitHub غير مكتملة. يرجى التأكد من إدخال التوكن، اسم المستودع، والمالك.');
       return false;
     }
 
     setState(prev => ({ ...prev, isPublishing: true }));
 
     try {
-      // Security: Only exclude the Token from being published to GitHub.
-      // Owner and Repo name are safe to publish and help new devices auto-configure.
-      const { githubToken, ...safeSettings } = settings;
-
       const dataToPublish = customData || {
-        siteSettings: safeSettings,
+        siteSettings: {
+          siteName: state.settings.siteName,
+          contactEmail: state.settings.contactEmail,
+          contactPhone: state.settings.contactPhone,
+          address: state.settings.address,
+          footerText: state.settings.footerText,
+          githubRepo: settings.githubRepo,
+          githubOwner: settings.githubOwner
+        },
         carouselItems: state.carousel,
         newsItems: state.news,
         councilMembers: state.members,
@@ -194,40 +209,38 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const content = btoa(unescape(encodeURIComponent(JSON.stringify(dataToPublish, null, 2))));
       const path = 'src/data/data.json';
       
-      // Log payload size for debugging
       const sizeInMB = (content.length * 0.75) / (1024 * 1024);
-      console.log(`Publishing payload size: ~${sizeInMB.toFixed(2)} MB`);
-
       if (sizeInMB > 20) {
         throw new Error('حجم البيانات كبير جداً (أكثر من 20 ميجابايت). يرجى تقليل عدد الصور أو حجمها.');
       }
 
-      // Get the SHA of the current file first
+      // 1. Get current SHA
       const getFileResponse = await fetch(
         `https://api.github.com/repos/${settings.githubOwner}/${settings.githubRepo}/contents/${path}`,
         {
           headers: {
-            'Authorization': `token ${settings.githubToken}`,
+            'Authorization': `Bearer ${settings.githubToken}`,
             'Accept': 'application/vnd.github.v3+json',
             'Cache-Control': 'no-cache'
           }
         }
-      );
+      ).catch(err => {
+        console.error('Fetch Error (GET SHA):', err);
+        throw new Error('فشل الاتصال بخوادم GitHub. قد يكون هناك حظر من المتصفح أو إضافة (Extension) تمنع الاتصال.');
+      });
 
       let sha = '';
       if (getFileResponse.ok) {
         const fileData = await getFileResponse.json();
         sha = fileData.sha;
-      } else if (getFileResponse.status === 404) {
-        console.warn('File not found on GitHub, will create a new one');
-      } else {
+      } else if (getFileResponse.status !== 404) {
         const errorData = await getFileResponse.json();
-        throw new Error(`فشل الحصول على معلومات الملف من GitHub: ${errorData.message}`);
+        throw new Error(`فشل الحصول على معلومات المستودع: ${errorData.message}`);
       }
 
-      // Update the file with a timeout
+      // 2. Update the file
       const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 seconds timeout
+      const timeoutId = setTimeout(() => controller.abort(), 60000);
 
       try {
         const updateResponse = await fetch(
@@ -235,44 +248,43 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           {
             method: 'PUT',
             headers: {
-              'Authorization': `token ${settings.githubToken}`,
+              'Authorization': `Bearer ${settings.githubToken}`,
               'Content-Type': 'application/json',
+              'Accept': 'application/vnd.github.v3+json'
             },
             body: JSON.stringify({
-              message: `Update site data from admin panel ${new Date().toLocaleString()}`,
+              message: `تحديث بيانات الموقع من لوحة التحكم - ${new Date().toLocaleString('ar-EG')}`,
               content: content,
               sha: sha
             }),
             signal: controller.signal
           }
-        );
+        ).catch(err => {
+          console.error('Fetch Error (PUT):', err);
+          throw new Error('فشل إرسال البيانات لـ GitHub. تأكد من جودة الإنترنت أو جرب متصفحاً آخر.');
+        });
 
         clearTimeout(timeoutId);
 
         if (updateResponse.ok) {
-          console.log('Published to GitHub successfully');
           return true;
         } else {
           const errorData = await updateResponse.json();
-          console.error('GitHub API Error:', errorData);
-          
           let errorMsg = errorData.message || 'خطأ غير معروف';
-          if (updateResponse.status === 401) errorMsg = 'التوكن غير صالح أو انتهت صلاحيته';
-          if (updateResponse.status === 404) errorMsg = 'المستودع غير موجود أو لا يملك التوكن صلاحية الوصول إليه';
-          if (updateResponse.status === 413) errorMsg = 'حجم الملف كبير جداً بالنسبة لـ GitHub API';
-          if (updateResponse.status === 409) errorMsg = 'حدث تعارض في النسخ (Conflict)، يرجى إعادة المحاولة';
-
+          if (updateResponse.status === 401) errorMsg = 'التوكن غير صالح أو انتهت صلاحيته. يرجى تحديث التوكن في الإعدادات.';
+          if (updateResponse.status === 404) errorMsg = 'المستودع غير موجود. تأكد من كتابة الاسم ومالك المستودع بدقة.';
+          if (updateResponse.status === 403) errorMsg = 'التوكن لا يملك صلاحية الرفع (Permissions). تأكد من تفعيل صلاحية "repo" عند إنشاء التوكن.';
+          
           throw new Error(errorMsg);
         }
       } catch (err: any) {
         if (err.name === 'AbortError') {
-          throw new Error('انتهت مهلة الاتصال بـ GitHub. قد يكون حجم البيانات كبيراً جداً أو سرعة الإنترنت ضعيفة.');
+          throw new Error('انتهت مهلة الاتصال. حجم البيانات كبير جداً بالنسبة لسرعة الإنترنت الحالية.');
         }
         throw err;
       }
     } catch (error: any) {
       console.error('Publish error:', error);
-      // Pass the error message back to the UI
       alert(`فشل النشر: ${error.message}`);
       return false;
     } finally {
