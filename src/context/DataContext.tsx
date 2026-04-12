@@ -229,13 +229,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setState(prev => ({ ...prev, isPublishing: true }));
 
     try {
-      // 1. Connectivity Check
-      try {
-        await fetch('https://api.github.com/zen', { mode: 'cors', cache: 'no-store' });
-      } catch (e) {
-        throw new Error('تعذر الوصول لخوادم GitHub. يرجى التأكد من جودة الإنترنت أو إيقاف أي إضافات (Ad-blocker) قد تمنع الاتصال.');
-      }
-
       const dataToPublish = customData || {
         siteSettings: {
           siteName: state.settings.siteName,
@@ -262,18 +255,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       const encRepo = encodeURIComponent(repo);
       const apiUrl = `https://api.github.com/repos/${encOwner}/${encRepo}/contents/${path}`;
 
-      // 2. Fetch SHA with modern Bearer token
+      // 1. Fetch current file info (SHA)
       const getFileResponse = await fetch(apiUrl, {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Accept': 'application/vnd.github.v3+json',
-          'Cache-Control': 'no-cache',
-          'Pragma': 'no-cache'
+          'Authorization': `token ${token}`,
+          'Accept': 'application/vnd.github.v3+json'
         },
-        mode: 'cors'
+        mode: 'cors',
+        cache: 'no-store'
       }).catch(err => {
         console.error('Fetch Error Detail:', err);
-        throw new Error(`فشل الاتصال الموثق. يرجى التأكد من أن التوكن يمتلك صلاحية الوصول للمستودع (${owner}/${repo}).\n(الخطأ: ${err.message})`);
+        throw new Error(`تعذر الاتصال بـ GitHub. يرجى التأكد من جودة الإنترنت وعدم وجود إضافات بالمتصفح تمنع الاتصال.\n(التفاصيل: ${err.message})`);
       });
 
       let sha = '';
@@ -281,16 +273,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const fileData = await getFileResponse.json();
         sha = fileData.sha;
       } else if (getFileResponse.status === 401 || getFileResponse.status === 403) {
-        const errData = await getFileResponse.json().catch(() => ({}));
-        throw new Error(`التوكن غير صالح أو لا يملك صلاحيات كافية (صلاحية repo). يرجى التأكد من إعدادات التوكن في GitHub.\n(التفاصيل: ${errData.message || 'Access Denied'})`);
+        throw new Error(`التوكن غير صالح أو لا يملك صلاحية الرفع (repo). يرجى التأكد من إعدادات التوكن في GitHub.`);
       } else if (getFileResponse.status === 404) {
-        throw new Error(`المستودع غير موجود أو الرابط غير صحيح. تأكد من أن المالك (${owner}) والمستودع (${repo}) صحيحان.`);
+        // Continue with empty SHA if file doesn't exist
       } else {
         const errData = await getFileResponse.json().catch(() => ({}));
-        throw new Error(`خطأ من GitHub (${getFileResponse.status}): ${errData.message || 'فشل الحصول على معلومات الملف'}`);
+        throw new Error(`خطأ من GitHub (${getFileResponse.status}): ${errData.message || 'فشل الاتصال'}`);
       }
 
-      // 3. Update with Timeout and Retry logic
+      // 2. Push Update
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 60000);
 
@@ -298,12 +289,12 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         const updateResponse = await fetch(apiUrl, {
           method: 'PUT',
           headers: {
-            'Authorization': `Bearer ${token}`,
+            'Authorization': `token ${token}`,
             'Content-Type': 'application/json',
             'Accept': 'application/vnd.github.v3+json'
           },
           body: JSON.stringify({
-            message: `تحديث البيانات - ${new Date().toLocaleString('ar-EG')}`,
+            message: `تحديث بيانات الموقع - ${new Date().toLocaleString('ar-EG')}`,
             content: content,
             sha: sha
           }),
@@ -321,50 +312,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         }
       } catch (err: any) {
         if (err.name === 'AbortError') {
-          throw new Error('انتهت مهلة الاتصال. حجم البيانات كبير أو سرعة الإنترنت ضعيفة جداً.');
-        }
-        throw err;
-      }
-
-      // 2. Update the file
-      const controller = new AbortController();
-      const timeoutId = setTimeout(() => controller.abort(), 60000);
-
-      try {
-        const updateResponse = await fetch(
-          `https://api.github.com/repos/${encOwner}/${encRepo}/contents/${path}`,
-          {
-            method: 'PUT',
-            headers: {
-              'Authorization': `token ${token}`,
-              'Content-Type': 'application/json',
-              'Accept': 'application/vnd.github.v3+json'
-            },
-            body: JSON.stringify({
-              message: `تحديث بيانات الموقع - ${new Date().toLocaleString('ar-EG')}`,
-              content: content,
-              sha: sha
-            }),
-            signal: controller.signal
-          }
-        ).catch(err => {
-          console.error('Fetch Error (PUT):', err);
-          throw new Error('فشل إرسال البيانات. قد تكون المشكلة في ضعف جودة الإنترنت.');
-        });
-
-        clearTimeout(timeoutId);
-
-        if (updateResponse.ok) {
-          return true;
-        } else {
-          const errorData = await updateResponse.json();
-          let errorMsg = errorData.message || 'خطأ غير معروف';
-          if (updateResponse.status === 403) errorMsg = 'التوكن لا يملك صلاحية الرفع (Permissions). تأكد من تفعيل صلاحية "repo" عند إنشاء التوكن.';
-          throw new Error(errorMsg);
-        }
-      } catch (err: any) {
-        if (err.name === 'AbortError') {
-          throw new Error('انتهت مهلة الاتصال. حجم البيانات كبير جداً بالنسبة لسرعة الإنترنت الحالية.');
+          throw new Error('انتهت مهلة الاتصال. حجم البيانات كبير جداً أو سرعة الإنترنت ضعيفة.');
         }
         throw err;
       }
