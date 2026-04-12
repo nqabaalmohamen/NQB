@@ -235,6 +235,8 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           contactPhone: state.settings.contactPhone,
           address: state.settings.address,
           footerText: state.settings.footerText,
+          maintenanceMode: state.settings.maintenanceMode,
+          maintenanceEndTime: state.settings.maintenanceEndTime,
           githubRepo: repo,
           githubOwner: owner
         },
