@@ -342,34 +342,64 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
   };
 
-  const updateNews = (items: NewsItem[]) => {
-    setState(prev => ({ ...prev, news: items }));
-    localStorage.setItem('newsItems', JSON.stringify(items));
+  const updateCarousel = (items: CarouselItem[]) => {
+    try {
+      setState(prev => ({ ...prev, carousel: items }));
+      localStorage.setItem('carouselItems', JSON.stringify(items));
+    } catch (e) {
+      console.error('Failed to save to localStorage:', e);
+      alert('فشل حفظ البيانات: مساحة التخزين ممتلئة. يرجى حذف بعض الصور القديمة أو تقليل حجم الصور الجديدة.');
+    }
   };
 
-  const updateCarousel = (items: CarouselItem[]) => {
-    setState(prev => ({ ...prev, carousel: items }));
-    localStorage.setItem('carouselItems', JSON.stringify(items));
+  const updateNews = (items: NewsItem[]) => {
+    try {
+      setState(prev => ({ ...prev, news: items }));
+      localStorage.setItem('newsItems', JSON.stringify(items));
+    } catch (e) {
+      console.error('Failed to save to localStorage:', e);
+      alert('فشل حفظ البيانات: مساحة التخزين ممتلئة.');
+    }
   };
 
   const updateMembers = (items: CouncilMember[]) => {
-    setState(prev => ({ ...prev, members: items }));
-    localStorage.setItem('councilMembers', JSON.stringify(items));
+    try {
+      setState(prev => ({ ...prev, members: items }));
+      localStorage.setItem('councilMembers', JSON.stringify(items));
+    } catch (e) {
+      console.error('Failed to save to localStorage:', e);
+      alert('فشل حفظ البيانات: مساحة التخزين ممتلئة.');
+    }
   };
 
   const updateResources = (items: LibraryResource[]) => {
-    setState(prev => ({ ...prev, resources: items }));
-    localStorage.setItem('libraryResources', JSON.stringify(items));
+    try {
+      setState(prev => ({ ...prev, resources: items }));
+      localStorage.setItem('libraryResources', JSON.stringify(items));
+    } catch (e) {
+      console.error('Failed to save to localStorage:', e);
+      alert('فشل حفظ البيانات: مساحة التخزين ممتلئة.');
+    }
   };
 
   const updateForensic = (data: ForensicData) => {
-    setState(prev => ({ ...prev, forensic: data }));
-    localStorage.setItem('forensicData', JSON.stringify(data));
+    try {
+      setState(prev => ({ ...prev, forensic: data }));
+      localStorage.setItem('forensicData', JSON.stringify(data));
+    } catch (e) {
+      console.error('Failed to save to localStorage:', e);
+      alert('فشل حفظ البيانات: مساحة التخزين ممتلئة.');
+    }
   };
 
   const updateInstitute = (data: InstituteData) => {
-    setState(prev => ({ ...prev, institute: data }));
-    localStorage.setItem('instituteData', JSON.stringify(data));
+    try {
+      setState(prev => ({ ...prev, institute: data }));
+      localStorage.setItem('instituteData', JSON.stringify(data));
+    } catch (e) {
+      console.error('Failed to save to localStorage:', e);
+      alert('فشل حفظ البيانات: مساحة التخزين ممتلئة.');
+    }
   };
 
   const updateSettings = (newSettings: SiteSettings) => {

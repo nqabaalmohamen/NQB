@@ -32,9 +32,11 @@ const NewsManager = () => {
       try {
         const base64 = await handleImageUpload(file);
         setEditForm({ ...editForm, image: base64 });
-      } catch (error) {
+        // Clear input value so same file can be selected again
+        e.target.value = '';
+      } catch (error: any) {
         console.error('Error uploading image:', error);
-        alert('حدث خطأ أثناء رفع الصورة');
+        alert(`حدث خطأ أثناء رفع الصورة: ${error.message || 'حاول استخدام صورة أصغر'}`);
       } finally {
         setUploading(false);
       }
@@ -55,6 +57,10 @@ const NewsManager = () => {
 
   const handleSaveEdit = () => {
     if (editForm) {
+      if (!editForm.title || !editForm.content) {
+        alert('يرجى ملء كافة الحقول الأساسية');
+        return;
+      }
       const newItems = items.map(item => item.id === editForm.id ? editForm : item);
       saveToStorage(newItems);
       setIsEditing(null);
@@ -64,6 +70,10 @@ const NewsManager = () => {
 
   const handleAdd = () => {
     if (editForm) {
+      if (!editForm.title || !editForm.content) {
+        alert('يرجى ملء كافة الحقول الأساسية');
+        return;
+      }
       const newItem = { ...editForm, id: Date.now() };
       const newItems = [newItem, ...items];
       saveToStorage(newItems);

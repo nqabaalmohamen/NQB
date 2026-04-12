@@ -31,9 +31,11 @@ const CarouselManager = () => {
       try {
         const base64 = await handleImageUpload(file);
         setEditForm({ ...editForm, image: base64 });
-      } catch (error) {
+        // Clear input value so same file can be selected again
+        e.target.value = '';
+      } catch (error: any) {
         console.error('Error uploading image:', error);
-        alert('حدث خطأ أثناء رفع الصورة');
+        alert(`حدث خطأ أثناء رفع الصورة: ${error.message || 'حاول استخدام صورة أصغر'}`);
       } finally {
         setUploading(false);
       }
@@ -54,6 +56,10 @@ const CarouselManager = () => {
 
   const handleSaveEdit = () => {
     if (editForm) {
+      if (!editForm.image) {
+        alert('يرجى اختيار صورة أولاً');
+        return;
+      }
       const newItems = items.map(item => item.id === editForm.id ? editForm : item);
       saveToStorage(newItems);
       setIsEditing(null);
@@ -63,6 +69,10 @@ const CarouselManager = () => {
 
   const handleAdd = () => {
     if (editForm) {
+      if (!editForm.image) {
+        alert('يرجى اختيار صورة أولاً');
+        return;
+      }
       const newItem = { ...editForm, id: Date.now() };
       const newItems = [...items, newItem];
       saveToStorage(newItems);
@@ -99,13 +109,13 @@ const CarouselManager = () => {
             </h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div>
-                <label className="block text-sm font-bold text-gray-700 mb-2">عنوان الخبر</label>
+                <label className="block text-sm font-bold text-gray-700 mb-2">عنوان الصورة</label>
                 <input
                   type="text"
                   value={editForm?.title || ''}
                   onChange={(e) => setEditForm({ ...editForm!, title: e.target.value })}
                   className="w-full bg-gray-50 border border-gray-200 rounded-xl px-4 py-3 focus:ring-2 focus:ring-primary outline-none transition-all"
-                  placeholder="أدخل عنوان الخبر"
+                  placeholder="أدخل عنواناً جذاباً للصورة"
                 />
               </div>
               <div>
