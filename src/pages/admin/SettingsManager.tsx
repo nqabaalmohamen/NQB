@@ -215,9 +215,9 @@ const SettingsManager = () => {
                     <Database className="h-5 w-5" />
                   </div>
                   <div>
-                    <h4 className="font-bold text-blue-900 text-sm">كيفية الحصول على GitHub Token؟</h4>
+                    <h4 className="font-bold text-blue-900 text-sm">ملاحظة هامة حول الأمان والمزامنة</h4>
                     <p className="text-xs text-blue-700 leading-relaxed mt-1">
-                      الـ Token هو بمثابة كلمة مرور تسمح للوحة التحكم بتحديث الموقع للجميع. اتبع الخطوات التالية:
+                      يتم حفظ اسم المستودع والمالك تلقائياً لجميع الأجهزة. أما الـ <strong>GitHub Token</strong> فيجب إدخاله <strong>مرة واحدة فقط على كل جهاز جديد</strong> تستخدمه. هذا إجراء أمني لحماية موقعك من الاختراق، حيث يُمنع تقنياً حفظ "كلمة المرور" (Token) بشكل علني على الإنترنت.
                     </p>
                   </div>
                 </div>

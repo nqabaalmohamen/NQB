@@ -61,15 +61,22 @@ const loadInitialData = async () => {
       );
       if (response.ok) {
         const remoteData = await response.json();
-        // Merge remote data with local messages and preserve local GitHub settings
+        
+        // Recover persistent GitHub settings from localStorage
+        const ghToken = localStorage.getItem('gh_token');
+        const ghRepo = localStorage.getItem('gh_repo');
+        const ghOwner = localStorage.getItem('gh_owner');
+
+        // Merge remote data with local secrets and preserve GitHub settings
         const localMessages = localStorage.getItem('contactMessages');
         return {
           ...remoteData,
           settings: {
             ...remoteData.siteSettings,
-            githubToken: settings.githubToken,
-            githubRepo: settings.githubRepo,
-            githubOwner: settings.githubOwner
+            // Prioritize local storage for GitHub info, fallback to remote data
+            githubToken: ghToken || remoteData.siteSettings.githubToken,
+            githubRepo: ghRepo || remoteData.siteSettings.githubRepo,
+            githubOwner: ghOwner || remoteData.siteSettings.githubOwner
           },
           messages: localMessages ? JSON.parse(localMessages) : remoteData.contactMessages || []
         };
@@ -147,8 +154,9 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     try {
-      // Create a copy of settings without sensitive GitHub info
-      const { githubToken, githubRepo, githubOwner, ...safeSettings } = settings;
+      // Security: Only exclude the Token from being published to GitHub.
+      // Owner and Repo name are safe to publish and help new devices auto-configure.
+      const { githubToken, ...safeSettings } = settings;
 
       const dataToPublish = customData || {
         siteSettings: safeSettings,
