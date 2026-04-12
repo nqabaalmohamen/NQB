@@ -188,9 +188,28 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     let repo = state.settings.githubRepo?.trim() || '';
     const token = state.settings.githubToken?.trim() || '';
 
-    // Advanced cleaning for owner/repo
-    if (owner.includes('/')) owner = owner.split('/').filter(Boolean).pop() || owner;
-    if (repo.includes('/')) repo = repo.split('/').filter(Boolean).pop() || repo;
+    // Advanced cleaning for owner/repo if full URL is pasted
+    if (owner.includes('github.com/')) {
+      const parts = owner.split('github.com/')[1].split('/').filter(Boolean);
+      if (parts.length >= 1) owner = parts[0];
+      if (parts.length >= 2 && !repo) repo = parts[1]; // Use as repo if repo is empty
+    }
+    if (repo.includes('github.com/')) {
+      const parts = repo.split('github.com/')[1].split('/').filter(Boolean);
+      if (parts.length >= 2) repo = parts[1];
+      else if (parts.length >= 1) repo = parts[0];
+    }
+
+    // Fallback simple cleaning (if only "owner/repo" was pasted)
+    if (owner.includes('/') && !owner.includes('http')) {
+      const parts = owner.split('/').filter(Boolean);
+      owner = parts[0];
+      if (parts.length >= 2 && !repo) repo = parts[1];
+    }
+    if (repo.includes('/') && !repo.includes('http')) {
+      const parts = repo.split('/').filter(Boolean);
+      repo = parts.pop() || repo;
+    }
 
     if (!token || !repo || !owner) {
       console.error('GitHub settings are missing', { owner, repo, hasToken: !!token });
@@ -243,8 +262,13 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
         }
       ).catch(err => {
-        console.error('Fetch Error (GET SHA):', err);
-        throw new Error('فشل الاتصال بخوادم GitHub. يرجى التأكد من عدم وجود إضافات بالمتصفح تمنع الاتصال (مثل مانع الإعلانات) أو تجربة متصفح آخر.');
+        console.error('GitHub API Fetch Error:', err);
+        // More detailed error if it's a browser-level fetch failure
+        throw new Error(`تعذر الاتصال بخوادم GitHub. يرجى التأكد من:
+1. صحة الـ Token واسم المستودع.
+2. عدم وجود إضافات (Ad-blocker) تمنع الاتصال.
+3. تجربة متصفح آخر (مثل Chrome أو Edge).
+(التفاصيل: ${err.message})`);
       });
 
       let sha = '';
