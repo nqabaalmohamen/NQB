@@ -37,7 +37,7 @@ const ImageCarousel: React.FC = () => {
   if (carouselItems.length === 0) return null;
 
   return (
-    <div className="relative w-full h-[350px] md:h-[500px] lg:h-[550px] overflow-hidden group bg-primary">
+    <div className="relative w-full h-[400px] md:h-[500px] lg:h-[550px] overflow-hidden group bg-primary">
       <AnimatePresence initial={false}>
         <motion.div
           key={currentIndex}
@@ -56,14 +56,14 @@ const ImageCarousel: React.FC = () => {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none"></div>
           
-          <div className="absolute inset-0 flex items-end justify-center text-center text-white pb-16 md:pb-24 px-4">
+          <div className="absolute inset-0 flex flex-col justify-center md:justify-end items-center text-center text-white pb-12 md:pb-24 pt-20 md:pt-24 px-4 overflow-hidden">
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: 0.1 }}
-              className="max-w-4xl w-full"
+              className="max-w-4xl w-full bg-black/20 md:bg-transparent backdrop-blur-[2px] md:backdrop-blur-none p-4 rounded-2xl"
             >
-              <h2 className="text-xl md:text-4xl lg:text-5xl font-serif font-bold mb-4 leading-tight drop-shadow-lg">
+              <h2 className="text-xl md:text-4xl lg:text-5xl font-serif font-bold mb-4 leading-tight drop-shadow-lg line-clamp-4 md:line-clamp-none">
                 {carouselItems[currentIndex].title}
               </h2>
               <Link

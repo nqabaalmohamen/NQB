@@ -75,7 +75,9 @@ const Dashboard = () => {
         keysToClear.forEach(key => localStorage.removeItem(key));
         
         // Force reload data from GitHub
-        window.location.reload();
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
       } else {
         setPublishStatus('error');
       }

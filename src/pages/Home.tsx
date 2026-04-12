@@ -15,7 +15,7 @@ const Home = () => {
       <ImageCarousel />
 
       {/* Quick Access Cards */}
-      <section className="max-w-7xl mx-auto px-4 w-full -mt-16 md:-mt-24 relative z-20">
+      <section className="max-w-7xl mx-auto px-4 w-full -mt-8 md:-mt-24 relative z-20">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
           {[
             { title: 'الطب الشرعي', icon: ShieldCheck, desc: 'خدمات التنسيق مع مصلحة الطب الشرعي والتقارير الفنية.' },
