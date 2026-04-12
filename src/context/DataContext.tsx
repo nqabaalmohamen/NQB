@@ -283,8 +283,15 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       if (getFileResponse.ok) {
         const fileData = await getFileResponse.json();
         sha = fileData.sha;
-      } else if (getFileResponse.status === 401 || getFileResponse.status === 403) {
-        throw new Error(`التوكن غير صالح أو لا يملك صلاحية الرفع (repo). يرجى التأكد من إعدادات التوكن في GitHub.`);
+      } else if (getFileResponse.status === 401) {
+        const errData = await getFileResponse.json().catch(() => ({}));
+        if (errData.message === 'Bad credentials') {
+          throw new Error('رمز الوصول (Token) غير صحيح أو انتهت صلاحيته. يرجى إنشاء Token جديد من إعدادات GitHub وإدخاله في صفحة الإعدادات.');
+        }
+        throw new Error(`خطأ في التوثيق: ${errData.message || 'التوكن غير صالح'}`);
+      } else if (getFileResponse.status === 403) {
+        const errData = await getFileResponse.json().catch(() => ({}));
+        throw new Error(`التوكن لا يملك صلاحيات كافية. يرجى التأكد من تفعيل صلاحية "repo" عند إنشاء التوكن.\n(التفاصيل: ${errData.message})`);
       } else if (getFileResponse.status === 404) {
         // Continue with empty SHA if file doesn't exist
       } else {

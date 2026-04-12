@@ -42,6 +42,9 @@ const SettingsManager = () => {
         alert('تم الاتصال بنجاح! الـ Token والمستودع صحيحان.');
       } else {
         const err = await response.json();
+        if (err.message === 'Bad credentials') {
+          throw new Error('رمز الوصول (Token) غير صحيح أو انتهت صلاحيته. يرجى إنشاء Token جديد.');
+        }
         throw new Error(err.message);
       }
     } catch (error: any) {
