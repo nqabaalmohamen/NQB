@@ -186,13 +186,17 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
 
     let owner = state.settings.githubOwner?.trim() || '';
     let repo = state.settings.githubRepo?.trim() || '';
-    const token = state.settings.githubToken?.trim() || '';
+    let token = state.settings.githubToken?.trim() || '';
+
+    // Advanced cleaning for token (in case user pasted "token ghp_..." or "Bearer ghp_...")
+    if (token.toLowerCase().startsWith('token ')) token = token.substring(6).trim();
+    if (token.toLowerCase().startsWith('bearer ')) token = token.substring(7).trim();
 
     // Advanced cleaning for owner/repo if full URL is pasted
     if (owner.includes('github.com/')) {
       const parts = owner.split('github.com/')[1].split('/').filter(Boolean);
       if (parts.length >= 1) owner = parts[0];
-      if (parts.length >= 2 && !repo) repo = parts[1]; // Use as repo if repo is empty
+      if (parts.length >= 2 && !repo) repo = parts[1];
     }
     if (repo.includes('github.com/')) {
       const parts = repo.split('github.com/')[1].split('/').filter(Boolean);
@@ -200,7 +204,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       else if (parts.length >= 1) repo = parts[0];
     }
 
-    // Fallback simple cleaning (if only "owner/repo" was pasted)
+    // Fallback simple cleaning
     if (owner.includes('/') && !owner.includes('http')) {
       const parts = owner.split('/').filter(Boolean);
       owner = parts[0];
@@ -212,7 +216,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
 
     if (!token || !repo || !owner) {
-      console.error('GitHub settings are missing', { owner, repo, hasToken: !!token });
       alert('إعدادات GitHub غير مكتملة. يرجى التأكد من إدخال التوكن، اسم المستودع، والمالك.');
       return false;
     }
@@ -220,6 +223,11 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setState(prev => ({ ...prev, isPublishing: true }));
 
     try {
+      // Diagnostic Ping to GitHub API to check connectivity
+      await fetch('https://api.github.com/zen').catch(() => {
+        throw new Error('متصفحك لا يستطيع الوصول لخوادم GitHub. قد يكون هناك حظر من شبكة الإنترنت (مثل Proxy أو VPN) أو إضافة حماية بالمتصفح.');
+      });
+
       const dataToPublish = customData || {
         siteSettings: {
           siteName: state.settings.siteName,
@@ -247,7 +255,6 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         throw new Error('حجم البيانات كبير جداً (أكثر من 20 ميجابايت). يرجى تقليل عدد الصور أو حجمها.');
       }
 
-      // Encode owner and repo for URL
       const encOwner = encodeURIComponent(owner);
       const encRepo = encodeURIComponent(repo);
 
@@ -262,23 +269,21 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
           }
         }
       ).catch(err => {
-        console.error('GitHub API Fetch Error:', err);
-        // More detailed error if it's a browser-level fetch failure
-        throw new Error(`تعذر الاتصال بخوادم GitHub. يرجى التأكد من:
-1. صحة الـ Token واسم المستودع.
-2. عدم وجود إضافات (Ad-blocker) تمنع الاتصال.
-3. تجربة متصفح آخر (مثل Chrome أو Edge).
-(التفاصيل: ${err.message})`);
+        console.error('GitHub API Error:', err);
+        throw new Error(`فشل الاتصال الموثق مع GitHub. تأكد من صحة التوكن واسم المستودع. (التفاصيل: ${err.message})`);
       });
 
       let sha = '';
       if (getFileResponse.ok) {
         const fileData = await getFileResponse.json();
         sha = fileData.sha;
+      } else if (getFileResponse.status === 401) {
+        throw new Error('التوكن غير صالح. يرجى التأكد من نسخ التوكن (GitHub Token) بشكل صحيح.');
+      } else if (getFileResponse.status === 404) {
+        throw new Error(`المستودع غير موجود أو لا يملك التوكن صلاحية الوصول إليه. تأكد من كتابة المالك: (${owner}) والمستودع: (${repo}) بدقة.`);
       } else if (getFileResponse.status !== 404) {
         const errorData = await getFileResponse.json();
-        if (getFileResponse.status === 401) throw new Error('التوكن غير صالح. تأكد من صحة الـ GitHub Token في الإعدادات.');
-        throw new Error(`فشل الوصول للمستودع (${getFileResponse.status}): ${errorData.message}`);
+        throw new Error(`خطأ من GitHub (${getFileResponse.status}): ${errorData.message}`);
       }
 
       // 2. Update the file
